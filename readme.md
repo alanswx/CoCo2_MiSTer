@@ -1,3 +1,10 @@
+
+# MiSTer Port of Tandy Color Computer 2 (CoCo2)
+
+
+https://github.com/pcornier/coco2
+
+
 ### Tandy Color 2
 
 I tried to recreate the Tandy Color 2 on a Spartan-6 dev board (AX309). There's still a lot to be done (sound, joystick, cassette...) but I don't want to put more efforts into it as it was just a learning project.
