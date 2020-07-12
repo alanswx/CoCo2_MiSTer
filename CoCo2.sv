@@ -202,7 +202,7 @@ wire [10:0] ps2_key;
 
 hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 (
-	.clk_sys(CLK_50M),
+	.clk_sys(clk_sys),
 	.HPS_BUS(HPS_BUS),
 	.EXT_BUS(),
 	.gamma_bus(),
@@ -220,7 +220,7 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 
 ///////////////////////   CLOCKS   ///////////////////////////////
 
-wire clk_sys;
+wire clk_sys; // 50M
 pll pll
 (
 	.refclk(CLK_50M),
@@ -245,7 +245,7 @@ wire [5:0] green;
 wire [4:0] blue;
 
 po8 po8(
-  .clk(CLK_50M), // 50 mhz
+  .clk(clk_sys), // 50 mhz
   .reset(~reset),
   .red(red),
   .green(green),
