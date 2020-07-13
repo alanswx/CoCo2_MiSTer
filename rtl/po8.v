@@ -343,7 +343,7 @@ keyboard kb(
 .reset(~reset),
 .ps2_key(ps2_key),
 .addr(kb_cols),
-.key_data(kb_rows),
+.kb_rows(kb_rows),
 .kblayout(1'b1),
 .Fn(),
 .modif()
