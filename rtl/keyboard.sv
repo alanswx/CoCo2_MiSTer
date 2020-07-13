@@ -242,12 +242,12 @@ always @(posedge clk_sys) begin
 			8'h0d : keys[6][1] <= ~press_btn; // TAB (PC)    -> CLEAR (TRS)
 			8'h76 : keys[6][2] <= ~press_btn; // ESCAPE (PC) -> BREAK (TRS)
 
-			8'h75 : keys[6][3] <= ~press_btn; // UP ARROW
-			8'h72 : keys[6][4] <= ~press_btn; // DN ARROW
-			8'h6B : keys[6][5] <= ~press_btn; // LF ARROW (PC)  -> LF ARROW (TRS)
-			8'h66 : keys[6][5] <= ~press_btn; // BACKSPACE (PC) -> LF ARROW (TRS)
-			8'h74 : keys[6][6] <= ~press_btn; // RT ARROW
-			8'h29 : keys[6][7] <= ~press_btn; // SPACE
+			8'h75 : keys[3][3] <= ~press_btn; // UP ARROW
+			8'h72 : keys[3][4] <= ~press_btn; // DN ARROW
+			8'h6B : keys[3][5] <= ~press_btn; // LF ARROW (PC)  -> LF ARROW (TRS)
+			8'h66 : keys[3][5] <= ~press_btn; // BACKSPACE (PC) -> LF ARROW (TRS)
+			8'h74 : keys[3][6] <= ~press_btn; // RT ARROW
+			8'h29 : keys[3][7] <= ~press_btn; // SPACE
 			
 			
 			8'h12 : begin
