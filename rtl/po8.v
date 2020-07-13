@@ -83,6 +83,7 @@ wire pia_cs  = cpu_addr[15:5]  == 11'b1111_1111_000;
 wire pia1_cs = cpu_addr[15:5]  == 11'b1111_1111_001;
 wire io_cs   = cpu_addr[15:6]  == 10'b1111_1111_11;
 
+//wire cart_cs = cpu_addr[15:13] == 110
 wire we = ~cpu_rw & E;
 
 wire [8:0] char_rom_addr;
@@ -318,7 +319,7 @@ io io1(
 // );
 
 // meanwhile, use UART to send keyboard codes
-
+/*
 wire uart_done;
 
 uart_rx uart_kb (
@@ -336,6 +337,18 @@ keyboard kb(
   .kb_cols(kb_cols),
   .done(uart_done)
 );
+*/
+keyboard kb(
+.clk_sys(clk),
+.reset(~reset),
+.ps2_key(ps2_key),
+.addr(kb_cols),
+.key_data(kb_rows),
+.kblayout(1'b1),
+.Fn(),
+.modif()
+);
+
 
 // the following is for debugging **
 // use 7 segs to display char codes
