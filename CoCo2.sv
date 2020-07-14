@@ -233,7 +233,6 @@ wire HBlank;
 wire HSync;
 wire VBlank;
 wire VSync;
-wire ce_pix ;
 
 wire [4:0] red;
 wire [5:0] green;
@@ -262,9 +261,13 @@ po8 po8(
 );
 
 
+reg ce_pix;
+always @(posedge clk_sys) begin
+       ce_pix <= !ce_pix;
+end
 
 assign CLK_VIDEO = clk_sys;
-assign CE_PIXEL = 1'b1;//ce_pix;
+assign CE_PIXEL = ce_pix;
 
 assign VGA_DE = ~(HBlank | VBlank);
 assign VGA_HS = HSync;
