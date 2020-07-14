@@ -168,30 +168,13 @@ assign VIDEO_ARY = status[1] ? 8'd9  : 8'd3;
 
 `include "build_id.v" 
 localparam CONF_STR = {
-	"MyCore;;",
+	"CoCo2;;",
 	"-;",
 	"O1,Aspect ratio,4:3,16:9;",
-	"O2,TV Mode,NTSC,PAL;",
-	"O34,Noise,White,Red,Green,Blue;",
 	"-;",
-	"P1,Test Page 1;",
-	"P1-;",
-	"P1-, -= Options in page 1 =-;",
-	"P1-;",
-	"P1O5,Option 1-1,Off,On;",
-	"d0P1F1,BIN;",
-	"H0P1O6,Option 1-2,Off,On;",
+	"F1,CCC,Load Cartridge;",
 	"-;",
-	"P2,Test Page 2;",
-	"P2-;",
-	"P2-, -= Options in page 2 =-;",
-	"P2-;",
-	"P2S0,DSK;",
-	"P2O67,Option 2,1,2,3,4;",
-	"-;",
-	"-;",
-	"T0,Reset;",
-	"R0,Reset and close OSD;",
+	"R0,Reset;",
 	"V,v",`BUILD_DATE 
 };
 
@@ -199,6 +182,11 @@ wire forced_scandoubler;
 wire  [1:0] buttons;
 wire [31:0] status;
 wire [10:0] ps2_key;
+wire        ioctl_download;
+wire        ioctl_wr;
+wire [15:0] ioctl_addr;
+wire  [7:0] ioctl_data;
+wire  [7:0] ioctl_index;
 
 hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 (
@@ -213,6 +201,13 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 	.buttons(buttons),
 	.status(status),
 	.status_menumask({status[5]}),
+
+	.ioctl_download(ioctl_download),
+	.ioctl_wr(ioctl_wr),
+	.ioctl_addr(ioctl_addr),
+	.ioctl_dout(ioctl_data),
+	.ioctl_index(ioctl_index),
+
 	
 	.ps2_key(ps2_key)
 );
@@ -260,7 +255,10 @@ po8 po8(
   .debug_led(led),
   .segments(),
   .digits(),
-  .ps2_key(ps2_key)
+  .ps2_key(ps2_key),
+  .ioctl_addr(ioctl_addr),
+  .ioctl_data(ioctl_data),
+  .ioctl_wr(ioctl_wr&ioctl_download)
 );
 
 

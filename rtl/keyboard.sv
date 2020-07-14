@@ -251,12 +251,12 @@ always @(posedge clk_sys) begin
 			
 			
 			8'h12 : begin
-						keys[7][6] <= ~press_btn; // Left shift
+						keys[6][6] <= ~press_btn; // Left shift
 						shiftstate <= press_btn;
 					end
 
 			8'h59 : begin
-						keys[7][7] <= ~press_btn; // Right shift
+						keys[6][7] <= ~press_btn; // Right shift
 						shiftstate <= press_btn;
 					end
 			
@@ -270,12 +270,12 @@ always @(posedge clk_sys) begin
 
 			8'h7c : begin
 						keys[5][2] <= ~press_btn; // * (shifted)
-						keys[7][6] <= ~press_btn;
+						keys[6][7] <= ~press_btn;
 					end
 
 			8'h79 : begin
 						keys[5][3] <= ~press_btn; // + (shifted)
-						keys[7][6] <= ~press_btn;
+						keys[6][7] <= ~press_btn;
 					end
 
 
@@ -291,7 +291,7 @@ always @(posedge clk_sys) begin
 			8'h45 :															// 0
 					if ((kblayout == 1) && (shiftstate == 1)) begin
 						keys[5][1] <= ~press_btn;						// PC ')' -> 9 + shift (TRS)
-						keys[7][6] <= ~press_btn;
+						keys[6][7] <= ~press_btn;
 					end
 					else begin
 						keys[4][0] <= ~press_btn;						// 0
@@ -314,7 +314,7 @@ always @(posedge clk_sys) begin
 			8'h3d :															// 7
 					if ((kblayout == 1) && (shiftstate == 1)) begin
 						keys[4][6] <= ~press_btn;						// PC '&' -> '6' + shift (TRS)
-						keys[7][6] <= ~press_btn;
+						keys[6][7] <= ~press_btn;
 					end
 					else begin
 						keys[4][7] <= ~press_btn;						// 7
@@ -323,7 +323,7 @@ always @(posedge clk_sys) begin
 			8'h3e :															// 8
 					if ((kblayout == 1) && (shiftstate == 1)) begin
 						keys[5][2] <= ~press_btn;						// PC '*' -> ':' + shift (TRS)
-						keys[7][6] <= ~press_btn;
+						keys[6][7] <= ~press_btn;
 					end
 					else begin
 						keys[5][0] <= ~press_btn;						// 8
@@ -332,7 +332,7 @@ always @(posedge clk_sys) begin
 			8'h46 :															// 9
 					if ((kblayout == 1) && (shiftstate == 1)) begin
 						keys[5][0] <= ~press_btn;						// PC '(' -> '8' + shift (TRS)
-						keys[7][6] <= ~press_btn;
+						keys[6][7] <= ~press_btn;
 					end
 					else begin
 						keys[5][1] <= ~press_btn;						// 9
@@ -350,7 +350,7 @@ always @(posedge clk_sys) begin
 			8'h4c :															// ;:
 					if ((kblayout == 1) && (shiftstate == 1)) begin
 						keys[5][2] <= ~press_btn;						// ':' (not shifted)  (TRS)
-						keys[7][6] <= press_btn;
+						keys[6][7] <= ~press_btn;
 					end
 					else begin
 						keys[5][3] <= ~press_btn;						// - (minus)
@@ -360,11 +360,11 @@ always @(posedge clk_sys) begin
 					if (kblayout == 1) begin
 						if (shiftstate == 0) begin						// if '=' on PC keyboard
 							keys[5][5] <= ~press_btn;					// '-' + shift (TRS)
-							keys[7][6] <= ~press_btn;
+							keys[6][7] <= ~press_btn;
 						end
 						else begin											// if '+' on PC keyboard
 							keys[5][3] <= ~press_btn;					// ';' + shift (TRS)
-							keys[7][6] <= ~press_btn;
+							keys[6][7] <= ~press_btn;
 						end
 					end
 					else begin
@@ -375,11 +375,11 @@ always @(posedge clk_sys) begin
 					if (kblayout == 1) begin
 						if (shiftstate == 1) begin						// if (double-quote) on PC keyboard
 							keys[4][2] <= ~press_btn;					// '2' + shift (TRS)
-							keys[7][6] <= ~press_btn;
+							keys[6][7] <= ~press_btn;
 						end
 						else begin											// if (apostrophe) on PC keyboard
 							keys[4][7] <= ~press_btn;					// '7' + shift (TRS)
-							keys[7][6] <= ~press_btn;
+							keys[6][7] <= ~press_btn;
 						end
 					end														// otherwise no mapping (TRS)
 

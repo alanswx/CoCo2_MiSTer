@@ -17,7 +17,10 @@ module po8(
   output debug_led,
   output reg [6:0] segments,
   output reg [5:0] digits,
-  input [10:0] ps2_key
+  input [10:0] ps2_key,
+  input [7:0] ioctl_data,
+  input [15:0] ioctl_addr,
+  input ioctl_wr
 );
 
 wire nmi = 1'b1;
@@ -167,7 +170,7 @@ rom_bas romA(
   .dout(romA_dout),
   .cs(~romA_cs)
 );
-
+/*
 // 8k disk basic rom
 rom_dsk romC(
   .clk(clk),
@@ -175,6 +178,19 @@ rom_dsk romC(
   .dout(romC_dout),
   .cs(~romC_cs)
 );
+*/
+dpram #(.addr_width_g(13), .data_width_g(8)) romC(
+	.clock_a(clk),
+	.address_a(cpu_addr[12:0]),
+	.q_a(romC_dout),
+	.enable_a(romC_cs),
+
+	.clock_b(clk),
+	.address_b(ioctl_addr[12:0]),
+	.data_b(ioctl_data),
+	.wren_a(ioctl_wr)
+        );
+
 /*
 // 8k extended basic rom
 rom #(
@@ -243,7 +259,7 @@ pia6520 pia1(
   .portb_out(pia1_portb_out),
   .ca1_in(),
   .ca2_in(),
-  .cb1_in(),
+  .cb1_in(),  // cartridge inserted
   .cb2_in(),
   .ca2_out(),
   .cb2_out(),
