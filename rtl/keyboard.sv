@@ -21,7 +21,7 @@
 //   specific prior written agreement from the author.
 //
 // * License is granted for non-commercial use only.  A fee may not be charged
-//   for redistributions as source code or in synthesized/hardware form without 
+//   for redistributions as source code or in synthesized/hardware form without
 //   specific prior written agreement from the author.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -52,10 +52,10 @@ module keyboard
 											// [8] - extended (i.e. preceded by scan 0xE0),
 											// [9] - pressed
 											// [10] - toggles with every press/release
-	
+
 	input       [7:0] addr,			// bottom 7 address lines from CPU for memory-mapped access
 	output      reg [7:0] kb_rows,	// data lines returned from scanning
-	
+
 	input					kblayout,	// 0 = TRS-80 keyboard arrangement; 1 = PS/2 key assignment
 
 	output reg [11:1] Fn = 0,
@@ -78,7 +78,7 @@ always @(addr) begin
 	if (keys[0][5]==1'b0) if (addr[5] == 1'b0) kb_rows[0] <= 1'b0;
 	if (keys[0][6]==1'b0) if (addr[6] == 1'b0) kb_rows[0] <= 1'b0;
 	if (keys[0][7]==1'b0) if (addr[7] == 1'b0) kb_rows[0] <= 1'b0;
-	
+
 	if (keys[1][0]==1'b0) if (addr[0] == 1'b0) kb_rows[1] <= 1'b0;
 	if (keys[1][1]==1'b0) if (addr[1] == 1'b0) kb_rows[1] <= 1'b0;
 	if (keys[1][2]==1'b0) if (addr[2] == 1'b0) kb_rows[1] <= 1'b0;
@@ -158,7 +158,7 @@ assign key_data =  (addr[0] ? keys[0] : 8'b11111111)
 reg  input_strobe = 0;
 
 always @(posedge clk_sys) begin
-	reg old_reset = 0;
+	reg old_reset;
 	old_reset <= reset;
 
 	if(~old_reset & reset) begin
@@ -204,7 +204,7 @@ always @(posedge clk_sys) begin
 			8'h24 : keys[0][5] <= ~press_btn; // E
 			8'h2b : keys[0][6] <= ~press_btn; // F
 			8'h34 : keys[0][7] <= ~press_btn; // G
-			
+
 			8'h33 : keys[1][0] <= ~press_btn; // H
 			8'h43 : keys[1][1] <= ~press_btn; // I
 			8'h3b : keys[1][2] <= ~press_btn; // J
@@ -213,7 +213,7 @@ always @(posedge clk_sys) begin
 			8'h3a : keys[1][5] <= ~press_btn; // M
 			8'h31 : keys[1][6] <= ~press_btn; // N
 			8'h44 : keys[1][7] <= ~press_btn; // O
-			
+
 			8'h4d : keys[2][0] <= ~press_btn; // P
 			8'h15 : keys[2][1] <= ~press_btn; // Q
 			8'h2d : keys[2][2] <= ~press_btn; // R
@@ -222,7 +222,7 @@ always @(posedge clk_sys) begin
 			8'h3c : keys[2][5] <= ~press_btn; // U
 			8'h2a : keys[2][6] <= ~press_btn; // V
 			8'h1d : keys[2][7] <= ~press_btn; // W
-			
+
 			8'h22 : keys[3][0] <= ~press_btn; // X
 			8'h35 : keys[3][1] <= ~press_btn; // Y
 			8'h1a : keys[3][2] <= ~press_btn; // Z
@@ -248,8 +248,8 @@ always @(posedge clk_sys) begin
 			8'h66 : keys[3][5] <= ~press_btn; // BACKSPACE (PC) -> LF ARROW (TRS)
 			8'h74 : keys[3][6] <= ~press_btn; // RT ARROW
 			8'h29 : keys[3][7] <= ~press_btn; // SPACE
-			
-			
+
+
 			8'h12 : begin
 						keys[6][6] <= ~press_btn; // Left shift
 						shiftstate <= press_btn;
@@ -259,12 +259,12 @@ always @(posedge clk_sys) begin
 						keys[6][7] <= ~press_btn; // Right shift
 						shiftstate <= press_btn;
 					end
-			
+
 //			8'h14 : keys[7][1] <= press_btn; // CTRL (Symbol Shift)
 
-			
+
 			// Numpad new keys:
-			
+
 			8'h7b : keys[5][5] <= ~press_btn; // keypad -
 			8'h6c : keys[6][1] <= ~press_btn; // KYPD-7 (PC) -> CLEAR (TRS)
 
@@ -296,7 +296,7 @@ always @(posedge clk_sys) begin
 					else begin
 						keys[4][0] <= ~press_btn;						// 0
 					end
-		
+
 			8'h1e :															// 2
 					if ((kblayout == 1) && (shiftstate == 1)) begin
 						keys[0][0] <= ~press_btn;						// PC '@" -> @ (TRS)
@@ -304,8 +304,8 @@ always @(posedge clk_sys) begin
 					else begin
 						keys[4][2] <= ~press_btn;						// 2
 					end
-			
-			
+
+
 			8'h36 :															// 6
 					if ((kblayout == 0) || (shiftstate == 0)) begin
 						keys[4][6] <= ~press_btn;						// 6 (no mapping for '^' from PC)
@@ -319,7 +319,7 @@ always @(posedge clk_sys) begin
 					else begin
 						keys[4][7] <= ~press_btn;						// 7
 					end
-			
+
 			8'h3e :															// 8
 					if ((kblayout == 1) && (shiftstate == 1)) begin
 						keys[5][2] <= ~press_btn;						// PC '*' -> ':' + shift (TRS)
@@ -328,7 +328,7 @@ always @(posedge clk_sys) begin
 					else begin
 						keys[5][0] <= ~press_btn;						// 8
 					end
-			
+
 			8'h46 :															// 9
 					if ((kblayout == 1) && (shiftstate == 1)) begin
 						keys[5][0] <= ~press_btn;						// PC '(' -> '8' + shift (TRS)
