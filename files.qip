@@ -11,9 +11,9 @@ set_global_assignment -name VERILOG_FILE rtl/ram.v
 set_global_assignment -name VERILOG_FILE rtl/seg7.v
 set_global_assignment -name VERILOG_FILE rtl/uart_rx.v
 set_global_assignment -name VERILOG_FILE rtl/pia6520.v
-set_global_assignment -name VERILOG_FILE bas.v
-set_global_assignment -name VERILOG_FILE chrrom.v
-set_global_assignment -name VERILOG_FILE ext.v
+set_global_assignment -name VERILOG_FILE rom_bas.v
+set_global_assignment -name VERILOG_FILE rom_chrrom.v
+set_global_assignment -name VERILOG_FILE rom_ext.v
 set_global_assignment -name VERILOG_FILE dsk.v
 set_global_assignment -name VHDL_FILE dpram.vhd
 set_global_assignment -name SYSTEMVERILOG_FILE CoCo2.sv
