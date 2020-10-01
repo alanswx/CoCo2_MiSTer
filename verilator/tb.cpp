@@ -110,8 +110,8 @@ int main(int argc, char** argv, char** env) {
       if (cycles > stop_sim) running = false;
     #endif
 
-    if (cycles == 100) top->RESET = 1;
-    if (cycles == 200) top->RESET = 0;
+    if (cycles == 1000) top->RESET = 1;
+    if (cycles == 2000) top->RESET = 0;
 
     #if VM_TRACE
       if (tfp && tracing) tfp->dump(cycles);
