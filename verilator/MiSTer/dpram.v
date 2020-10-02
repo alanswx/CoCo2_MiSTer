@@ -14,7 +14,7 @@ module dpram #(parameter addr_width_g = 16, parameter data_width_g = 8)  (
     output reg [data_width_g-1:0] q_b
 );
 
-reg [data_width_g-1:0] memory[0:(1>>addr_width_g)-1];
+reg [data_width_g-1:0] memory[(1<<addr_width_g)-1:0];
 
 always @(posedge clock_a) begin
     q_a <= enable_a ? memory[address_a] : 0;
