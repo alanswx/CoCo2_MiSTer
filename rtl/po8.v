@@ -136,6 +136,7 @@ dpram #(.addr_width_g(15), .data_width_g(8)) ram1(
 	.q_a(ram_dout),
 	.wren_a(we),
 	.enable_a(ram_cs),
+  .enable_b(ram_cs),
 
 	.clock_b(clk),
 	.address_b(vmem),
