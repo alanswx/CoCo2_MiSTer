@@ -121,6 +121,16 @@ int main(int argc, char** argv, char** env) {
 
     top->CLK_50M = !top->CLK_50M;
 
+    // on mac, we need an event loop or window doesn't pop up
+    // this also will allow us to quit from the menu instead
+    // of killing the process
+    SDL_Event event;
+    if (SDL_PollEvent( & event)) {
+        if (event.type == SDL_QUIT) {
+            running = false;
+        }
+    }
+
     if (dirty) {
       SDL_BlitSurface(canvas, NULL, screen, NULL);
       SDL_UpdateWindowSurface(window);
