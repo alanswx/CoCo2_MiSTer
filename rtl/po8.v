@@ -50,7 +50,7 @@ wire [10:0] vdg_char_addr;
 wire [7:0] chr_dout;
 
 // this should be managed by SAM
-wire [14:0] vmem = { disp_offset, vdg_addr[8:0] };
+wire [14:0] vmem = { disp_offset, 9'd0 } + vdg_addr;
 
 wire [7:0] ram_dout;
 wire [7:0] ram_dout_b;
