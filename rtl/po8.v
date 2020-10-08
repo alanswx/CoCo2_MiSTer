@@ -268,7 +268,7 @@ mc6847 vdg(
   .vsync(vsync),
   .hblank(hblank),
   .vblank(vblank),
-  .artifact_en(1'b0),
+  .artifact_en(1'b1),
   .artifact_set(1'b0),
   .artifact_phase(1'b1),
   .cvbs(),
