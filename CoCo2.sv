@@ -147,7 +147,7 @@ assign USER_OUT = '1;
 assign {UART_RTS, UART_TXD, UART_DTR} = 0;
 assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
 assign {SDRAM_DQ, SDRAM_A, SDRAM_BA, SDRAM_CLK, SDRAM_CKE, SDRAM_DQML, SDRAM_DQMH, SDRAM_nWE, SDRAM_nCAS, SDRAM_nRAS, SDRAM_nCS} = 'Z;
-assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = '0;  
+assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = '0;
 
 assign VGA_SL = 0;
 assign VGA_F1 = 0;
@@ -164,9 +164,9 @@ assign BUTTONS = 0;
 //////////////////////////////////////////////////////////////////
 
 assign VIDEO_ARX = status[1] ? 8'd16 : 8'd4;
-assign VIDEO_ARY = status[1] ? 8'd9  : 8'd3; 
+assign VIDEO_ARY = status[1] ? 8'd9  : 8'd3;
 
-`include "build_id.v" 
+`include "build_id.v"
 localparam CONF_STR = {
 	"CoCo2;;",
 	"-;",
@@ -175,7 +175,7 @@ localparam CONF_STR = {
 	"F1,CCC,Load Cartridge;",
 	"-;",
 	"R0,Reset;",
-	"V,v",`BUILD_DATE 
+	"V,v",`BUILD_DATE
 };
 
 wire forced_scandoubler;
@@ -208,7 +208,7 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 	.ioctl_dout(ioctl_data),
 	.ioctl_index(ioctl_index),
 
-	
+
 	.ps2_key(ps2_key)
 );
 
@@ -223,7 +223,7 @@ pll pll
 	.outclk_0(clk_sys)
 );
 
-wire reset = RESET | status[0] | buttons[1];
+wire reset = RESET | status[0] | buttons[1] | ioctl_download;
 
 //////////////////////////////////////////////////////////////////
 
@@ -257,7 +257,8 @@ po8 po8(
   .ps2_key(ps2_key),
   .ioctl_addr(ioctl_addr),
   .ioctl_data(ioctl_data),
-  .ioctl_wr(ioctl_wr&ioctl_download)
+  .ioctl_download(ioctl_download),
+  .ioctl_wr(ioctl_wr)
 );
 
 
@@ -277,7 +278,7 @@ assign VGA_R  = {red,red[4:2]};
 assign VGA_B  = {blue,blue[4:2]};
 
 reg  [26:0] act_cnt;
-always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1; 
+always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1;
 	wire led;
 assign LED_USER    = led;
 
