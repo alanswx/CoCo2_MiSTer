@@ -72,7 +72,7 @@ assign VClk = clk_div[1];
 reg page;
 reg [2:0] mode_bits;
 reg ty;
-reg ms[1:0];
+reg [1:0] ms;
 
 assign Zo = ty & ~ms[1] ? Ai : { page, Ai[14:0] };
 
