@@ -1,9 +1,9 @@
 
 
-
+// todo: find a better name
 module po8(
   input clk, // 50 mhz
-  input reset,
+  input reset, // todo: reset doesn't work!
   output [4:0] red,
   output [5:0] green,
   output [4:0] blue,
@@ -20,37 +20,19 @@ module po8(
   input [10:0] ps2_key,
   input [7:0] ioctl_data,
   input [15:0] ioctl_addr,
+  input ioctl_download,
   input ioctl_wr
 );
 
 wire nmi = 1'b1;
 wire halt = 1'b1;
 
-reg E = 0;
-reg Q = 0;
-
-reg [4:0] clk_div = 0;
-always @(posedge clk) begin
-  //clk_div <= clk_div + 6'd1;
-  clk_div <= clk_div + 5'd1;
-  if (clk_div == 5'b10000) E <= ~E;
-  if (clk_div == 5'b00000) Q <= ~Q;
-end
+wire E, Q;
+wire VClk;
 
 reg clk25;
 always @(posedge clk)
   clk25 <= ~clk25;
-
-reg clk12;
-always @(posedge clk25)
-  clk12 <= ~clk12;
-
-reg [9:0] clk_div2 = 0;
-reg slow_clk;
-always @(posedge clk) begin
-  clk_div2 <= clk_div2 + 10'b1;
-  if (clk_div2 == 0) slow_clk <= ~slow_clk;
-end
 
 wire [7:0] cpu_dout;
 wire [15:0] cpu_addr;
@@ -67,7 +49,8 @@ wire [12:0] vdg_addr;
 wire [10:0] vdg_char_addr;
 wire [7:0] chr_dout;
 
-wire [10:0] vmem = { 2'b10, vdg_addr[8:0] };
+// this should be managed by SAM
+wire [14:0] vmem = { disp_offset, 9'd0 } + vdg_addr;
 
 wire [7:0] ram_dout;
 wire [7:0] ram_dout_b;
@@ -78,15 +61,6 @@ wire [7:0] pia_dout;
 wire [7:0] pia1_dout;
 wire [7:0] io_out;
 
-wire ram_cs  = cpu_addr[15] == 0;
-wire rom8_cs = cpu_addr[15:13] == 3'b100;
-wire romA_cs = cpu_addr[15:13] == 3'b101;
-wire romC_cs = cpu_addr[15:13] == 3'b110;
-wire pia_cs  = cpu_addr[15:5]  == 11'b1111_1111_000;
-wire pia1_cs = cpu_addr[15:5]  == 11'b1111_1111_001;
-wire io_cs   = cpu_addr[15:6]  == 10'b1111_1111_11;
-
-//wire cart_cs = cpu_addr[15:13] == 110
 wire we = ~cpu_rw & E;
 
 wire [8:0] char_rom_addr;
@@ -129,37 +103,25 @@ mc6809e cpu(
   .nRESET(reset)
 );
 
-dpram #(.addr_width_g(15), .data_width_g(8)) ram1(
-	.clock_a(clk),
-	.address_a(cpu_addr[14:0]),
-	.data_a(cpu_dout),
-	.q_a(ram_dout),
-	.wren_a(we),
-	.enable_a(ram_cs),
-	.enable_b(1'b1),
+dpram #(.addr_width_g(16), .data_width_g(8)) ram1(
+  .clock_a(clk),
+  .address_a(mem_addr),
+  .data_a(cpu_dout),
+  .q_a(ram_dout),
+  .wren_a(we),
+  .enable_a(ram_cs),
+  .enable_b(1'b1),
 
-	.clock_b(clk),
-	.address_b(vmem),
-	.q_b(ram_dout_b)
-        );
-// 32k dual port ram
- /*
-ram ram1(
-  .clk(clk),
-  .addr(cpu_addr[14:0]),
-  .din(cpu_dout),
-  .dout(ram_dout),
-  .addr_b(vmem),
-  .dout_b(ram_dout_b),
-  .we(~we),
-  .cs(~ram_cs)
+  .clock_b(clk),
+  .address_b(vmem),
+  .q_b(ram_dout_b)
 );
-*/
 
 // 8k extended basic rom
+// Do we need an option to enable/disable extended basic rom?
 rom_ext rom8(
   .clk(clk),
-  .addr(cpu_addr[12:0]),
+  .addr(mem_addr[12:0]),
   .dout(rom8_dout),
   .cs(~rom8_cs)
 );
@@ -167,65 +129,67 @@ rom_ext rom8(
 // 8k color basic rom
 rom_bas romA(
   .clk(clk),
-  .addr(cpu_addr[12:0]),
+  .addr(mem_addr[12:0]),
   .dout(romA_dout),
   .cs(~romA_cs)
 );
-/*
-// 8k disk basic rom
-rom_dsk romC(
-  .clk(clk),
-  .addr(cpu_addr[12:0]),
-  .dout(romC_dout),
-  .cs(~romC_cs)
-);
-*/
+
+// there must be another solution
+reg cart_loaded;
+always @(posedge clk)
+  if (ioctl_download & ioctl_wr)
+    cart_loaded <= ioctl_addr > 15'h100;
+
 dpram #(.addr_width_g(13), .data_width_g(8)) romC(
-	.clock_a(clk),
-	.address_a(cpu_addr[12:0]),
-	.q_a(romC_dout),
-	.enable_a(romC_cs),
+  .clock_a(clk),
+  .address_a(mem_addr[12:0]),
+  .q_a(romC_dout),
+  .enable_a(romC_cs),
 
-	.clock_b(clk),
-	.address_b(ioctl_addr[12:0]),
-	.data_b(ioctl_data),
-	.wren_a(ioctl_wr)
-        );
-
-/*
-// 8k extended basic rom
-rom #(
-  .ROMFILE ("ext"),
-  .SIZE(8191)
-) rom8(
-  .clk(clk),
-  .addr(cpu_addr[12:0]),
-  .dout(rom8_dout),
-  .cs(~rom8_cs)
+  .clock_b(clk),
+  .address_b(ioctl_addr[12:0]),
+  .data_b(ioctl_data),
+  .wren_b(ioctl_wr)
 );
 
-// 8k color basic rom
-rom #(
-  .ROMFILE ("bas"),
-  .SIZE(8191)
-) romA(
+wire [2:0] S;
+wire [15:0] sam_addr;
+reg [15:0] mem_addr;
+wire [6:0] disp_offset;
+
+// to keep it stable for CPU
+always @(posedge Q)
+  mem_addr <= sam_addr;
+
+// Simplified version of SAM:
+// - Z is 16bit
+// - no VDG address generation
+// - and a lot of missing signals
+sam sam(
   .clk(clk),
-  .addr(cpu_addr[12:0]),
-  .dout(romA_dout),
-  .cs(~romA_cs)
+  .Ai(cpu_addr),
+  .Zo(sam_addr),
+  .Q(Q),
+  .E(E),
+  .VClk(VClk),
+  .S(S),
+  .iRW(~we),
+  .disp_offset(disp_offset)
 );
 
-// 8k disk basic rom
-rom #(
-  .ROMFILE ("dsk"),
-  .SIZE(8191)
-) romC(
-  .clk(clk),
-  .addr(cpu_addr[12:0]),
-  .dout(romC_dout),
-  .cs(~romC_cs)
+wire [7:0] cs74138;
+assign {
+  io_cs, pia1_cs, pia_cs,
+  romC_cs, romA_cs, rom8_cs,
+  ram_cs
+} = ~cs74138;
+
+x74138 x74138(
+  .En(3'b100),
+  .I(S),
+  .O(cs74138)
 );
-*/
+
 pia6520 pia(
   .data_out(pia_dout),
   .data_in(cpu_dout),
@@ -260,7 +224,7 @@ pia6520 pia1(
   .portb_out(pia1_portb_out),
   .ca1_in(),
   .ca2_in(),
-  .cb1_in(),  // cartridge inserted
+  .cb1_in(cart_loaded & reset & Q), // cartridge inserted
   .cb2_in(),
   .ca2_out(),
   .cb2_out(),
@@ -275,7 +239,7 @@ assign blue = { b4, 1'b0 };
 
 mc6847 vdg(
   .clk(clk25),
-  .clk_ena(clk12),
+  .clk_ena(VClk),
   .reset(~reset),
   .da0(),
   .videoaddr(vdg_addr),
@@ -295,7 +259,7 @@ mc6847 vdg(
   .vsync(vsync),
   .hblank(hblank),
   .vblank(vblank),
-  .artifact_en(1'b0),
+  .artifact_en(1'b1),
   .artifact_set(1'b0),
   .artifact_phase(1'b1),
   .cvbs(),
@@ -304,57 +268,12 @@ mc6847 vdg(
   .char_d_o(char_data) // <= char rom data
 );
 
-/*
-chrrom #(
-  .ROMFILE ("chrrom")
-) chr(
-  .clk(clk),
-  .addr(char_rom_addr),
-  .dout(chr_dout)
-);
-*/
 rom_chrrom chrrom(
   .clk(clk),
   .addr(char_rom_addr),
   .dout(chr_dout)
 );
 
-io io1(
-  .clk(clk),
-  .addr(cpu_addr[5:0]),
-  .din(cpu_dout),
-  .dout(io_out),
-  .we(~we),
-  .cs(~io_cs)
-);
-
-// I haven't reveived my PS/2 keyboard so I can't test
-// ps2 ps2_keyboard(
-//   .ps2_clk(ps2_clk),
-//   .ps2_dat(ps2_dat),
-//   .data(keyboard_data)
-// );
-
-// meanwhile, use UART to send keyboard codes
-/*
-wire uart_done;
-
-uart_rx uart_kb (
-  .clk(clk),
-  .rx(uart_din),
-  .dout(keyboard_data),
-  .done(uart_done)
-);
-
-keyboard kb(
-  .clk(clk),
-  .ps2_key(ps2_key),
-  .keyboard_data(keyboard_data),
-  .kb_rows(kb_rows),
-  .kb_cols(kb_cols),
-  .done(uart_done)
-);
-*/
 keyboard kb(
 .clk_sys(clk),
 .reset(~reset),
@@ -367,37 +286,6 @@ keyboard kb(
 );
 
 
-// the following is for debugging **
-// use 7 segs to display char codes
-
-wire [6:0] seg_d1, seg_d2, seg_d3, seg_d4;
-
-always @(posedge slow_clk)
-  if (digits == 6'd0 || digits == 6'b011111)
-    digits <= 6'b111110;
-  else
-    digits <= { digits[4:0], 1'b1 };
-
-always @*
-	case (digits)
-		6'b111110: segments = seg_d1;
-		6'b111101: segments = seg_d2;
-		6'b111011: segments = seg_d3;
-		6'b110111: segments = seg_d4;
-		default: segments = 7'b1111110;
-	endcase
-
-seg7 dbg_rows(
-  .din(kb_rows),
-  .d1(seg_d1),
-  .d2(seg_d2)
-);
-
-seg7 dbg_kbdat(
-  .din(keyboard_data),
-  .d1(seg_d3),
-  .d2(seg_d4)
-);
 
 assign debug_led = kb_rows != 8'hff;
 
