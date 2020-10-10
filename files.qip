@@ -1,4 +1,3 @@
-set_global_assignment -name VERILOG_FILE rtl/io.v
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/keyboard.sv
 set_global_assignment -name VERILOG_FILE rtl/mc6809e.v
 set_global_assignment -name VERILOG_FILE rtl/mc6809i.v

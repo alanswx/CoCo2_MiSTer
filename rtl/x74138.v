@@ -1,4 +1,5 @@
 
+// from https://www.programmersought.com/article/34964783614/
 module x74138(En, I, O);
     input wire[2:0] En;
     input wire[2:0] I;

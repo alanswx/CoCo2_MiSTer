@@ -103,9 +103,9 @@ mc6809e cpu(
   .nRESET(reset)
 );
 
-dpram #(.addr_width_g(15), .data_width_g(8)) ram1(
+dpram #(.addr_width_g(16), .data_width_g(8)) ram1(
   .clock_a(clk),
-  .address_a(mem_addr[14:0]),
+  .address_a(mem_addr),
   .data_a(cpu_dout),
   .q_a(ram_dout),
   .wren_a(we),
@@ -175,15 +175,6 @@ sam sam(
   .S(S),
   .iRW(~we),
   .disp_offset(disp_offset)
-);
-
-io io1(
-  .clk(clk),
-  .addr(cpu_addr[5:0]),
-  .din(cpu_dout),
-  .dout(io_out),
-  .we(~we),
-  .cs(~io_cs)
 );
 
 wire [7:0] cs74138;

@@ -10,8 +10,8 @@ chip select signal S:
 3 romC c000-feff cartridge
 4 pia1 ff00-ff1f (ff00-ff03)
 5 pia2 ff20-ff3f (ff20-ff23)
-- n/a  ff40-ffbf
-6 i/o  ffc0-ffff
+- n/a  ff40-ff5f
+7/2 ffc0-ffff
 
   ffc0-ffc5 SAM VDG Mode registers V0-V2
   ffc0/ffc1 SAM VDG Reg V0
@@ -72,9 +72,9 @@ assign VClk = clk_div[1];
 reg page;
 reg [2:0] mode_bits;
 reg ty;
-reg [1:0] ms;
+reg [1:0] ms, rate;
 
-assign Zo = ty & ~ms[1] ? Ai : { page, Ai[14:0] };
+assign Zo = ty ? { page, Ai[14:0] } : Ai;
 
 
 always @(posedge clk)
@@ -102,6 +102,10 @@ always @(posedge clk)
       16'hffd3: disp_offset[6] <= 1'b1;
       16'hffd4: page <= 1'b0;
       16'hffd5: page <= 1'b1;
+      16'hffd6: rate[0] <= 1'b0;
+      16'hffd7: rate[0] <= 1'b1;
+      16'hffd8: rate[1] <= 1'b0;
+      16'hffd9: rate[1] <= 1'b1;
       16'hffda: ms[0] <= 1'b0;
       16'hffdb: ms[0] <= 1'b1;
       16'hffdc: ms[1] <= 1'b0;
@@ -121,17 +125,26 @@ always @(posedge clk)
 always @*
   casez (Ai)
     16'b0???_????_????_????: S = 0; // 0000-7fff ram
-    16'b100?_????_????_????: S = 1; // 8000-9fff exp rom
-    16'b101?_????_????_????: S = 2; // a000-bfff bas rom
-    16'b110?_????_????_????: S = 3; // c000-dfff \
-    16'b1110_????_????_????: S = 3; // e000-efff |
-    16'b1111_0???_????_????: S = 3; // f000-f7ff |
-    16'b1111_10??_????_????: S = 3; // f800-fbff |
-    16'b1111_110?_????_????: S = 3; // fc00-fdff |
-    16'b1111_1110_????_????: S = 3; // fe00-feff /
-    16'b1111_1111_000?_????: S = 4; // ff00-ff1f pia1
-    16'b1111_1111_001?_????: S = 5; // ff20-ff3f pia2
-    16'b1111_1111_11??_????: S = 6; // ffc0-ffff i/o
+    16'b1???_????_????_????: begin
+      if (ty & iRW) S = 0;
+      else
+        casez (Ai)
+          16'b100?_????_????_????: S = 1; // 8000-9fff exp rom
+          16'b101?_????_????_????: S = 2; // a000-bfff bas rom
+          16'b110?_????_????_????: S = 3; // c000-dfff \
+          16'b1110_????_????_????: S = 3; // e000-efff |
+          16'b1111_0???_????_????: S = 3; // f000-f7ff |
+          16'b1111_10??_????_????: S = 3; // f800-fbff |
+          16'b1111_110?_????_????: S = 3; // fc00-fdff |
+          16'b1111_1110_????_????: S = 3; // fe00-feff /
+          16'b1111_1111_000?_????: S = 4; // ff00-ff1f pia1
+          16'b1111_1111_001?_????: S = 5; // ff20-ff3f pia2
+          16'b1111_1111_010?_????: S = 6; // ff40-ff5f scs (cartridge spare select signal)
+          // -- reserved FF60 - FFBF
+          16'b1111_1111_110?_????: S = 7; // ffc0-ffdf SAM ctrl reg
+          16'b1111_1111_111?_????: S = 2; // ffe0-ffff i/o
+        endcase
+    end
   endcase
 
 endmodule
