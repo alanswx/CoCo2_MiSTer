@@ -654,10 +654,10 @@ module mc6847 (
                                       else if (p_in[3] == 1'b1 && vga_char_d_o[3] == 1'b1)
                                         p_out[3:0] <= 4'b1100;
                                       else if (p_in[3] == 1'b0 && vga_char_d_o[3] == 1'b1)
-                                        p_out[3:0] <= 4'b1011;  // red
+                                        p_out[3:0] <= artifact_phase ? 4'b1010 : 4'b1011;  // red if normal, blue if reverse
                                       //p_out[3:0] <= 4'b1101;  // cyan
                                       else
-                                        p_out[3:0] <= 4'b1010;  // blue
+                                        p_out[3:0] <= artifact_phase ? 4'b1011 : 4'b1010;  // blue if normal, red if reverse
                                       //p_out[3:0] <= 4'b1111;  // orange
                                    end // if (cnt != 0)
                                  {red, green, blue} <= map_palette (p_out);

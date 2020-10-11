@@ -21,7 +21,8 @@ module po8(
   input [7:0] ioctl_data,
   input [15:0] ioctl_addr,
   input ioctl_download,
-  input ioctl_wr
+  input ioctl_wr,
+  input artifact_phase
 );
 
 wire nmi = 1'b1;
@@ -261,7 +262,7 @@ mc6847 vdg(
   .vblank(vblank),
   .artifact_en(1'b1),
   .artifact_set(1'b0),
-  .artifact_phase(1'b1),
+  .artifact_phase(artifact_phase),
   .cvbs(),
   .black_backgnd(1'b1),
   .char_a(vdg_char_addr), // => char rom address

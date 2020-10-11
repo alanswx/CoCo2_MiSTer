@@ -171,6 +171,7 @@ localparam CONF_STR = {
 	"CoCo2;;",
 	"-;",
 	"O1,Aspect ratio,4:3,16:9;",
+	"O2,Artifact Phase,Normal,Reverse;",
 	"-;",
 	"F1,CCC,Load Cartridge;",
 	"-;",
@@ -258,7 +259,8 @@ po8 po8(
   .ioctl_addr(ioctl_addr),
   .ioctl_data(ioctl_data),
   .ioctl_download(ioctl_download),
-  .ioctl_wr(ioctl_wr)
+  .ioctl_wr(ioctl_wr),
+  .artifact_phase(status[2])
 );
 
 
