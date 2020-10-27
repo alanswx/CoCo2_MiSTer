@@ -58,6 +58,11 @@ module keyboard
 
 	input					kblayout,	// 0 = TRS-80 keyboard arrangement; 1 = PS/2 key assignment
 
+	
+	input			joystick_1_button,
+	input			joystick_2_button,
+	input       joystick_hilo,
+	
 	output reg [11:1] Fn = 0,
 	output reg  [2:0] modif = 0
 );
@@ -68,8 +73,15 @@ reg  [7:0] code;
 reg		  shiftstate = 0;
 
 // Output addressed row to ULA
-always @(addr) begin
+//always @(addr, joystick_1_button,joystick_2_button,joystick_hilo) begin
+always @(clk_sys) begin
 	kb_rows<=8'hff;
+	
+	
+	if (joystick_1_button) kb_rows[0]<=0;
+	if (joystick_2_button) kb_rows[1]<=0;
+	kb_rows[7]<=joystick_hilo;
+	
 	if (keys[0][0]==1'b0) if (addr[0] == 1'b0) kb_rows[0] <= 1'b0;
 	if (keys[0][1]==1'b0) if (addr[1] == 1'b0) kb_rows[0] <= 1'b0;
 	if (keys[0][2]==1'b0) if (addr[2] == 1'b0) kb_rows[0] <= 1'b0;
@@ -132,7 +144,7 @@ always @(addr) begin
 	if (keys[6][5]==1'b0) if (addr[5] == 1'b0) kb_rows[6] <= 1'b0;
 	if (keys[6][6]==1'b0) if (addr[6] == 1'b0) kb_rows[6] <= 1'b0;
 	if (keys[6][7]==1'b0) if (addr[7] == 1'b0) kb_rows[6] <= 1'b0;
-
+/*
 	if (keys[7][0]==1'b0) if (addr[0] == 1'b0) kb_rows[7] <= 1'b0;
 	if (keys[7][1]==1'b0) if (addr[1] == 1'b0) kb_rows[7] <= 1'b0;
 	if (keys[7][2]==1'b0) if (addr[2] == 1'b0) kb_rows[7] <= 1'b0;
@@ -141,7 +153,7 @@ always @(addr) begin
 	if (keys[7][5]==1'b0) if (addr[5] == 1'b0) kb_rows[7] <= 1'b0;
 	if (keys[7][6]==1'b0) if (addr[6] == 1'b0) kb_rows[7] <= 1'b0;
 	if (keys[7][7]==1'b0) if (addr[7] == 1'b0) kb_rows[7] <= 1'b0;
-
+*/
 
 end
 /*

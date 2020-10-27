@@ -22,7 +22,13 @@ module po8(
   input [15:0] ioctl_addr,
   input ioctl_download,
   input ioctl_wr,
-  input artifact_phase
+  input artifact_phase,
+  input [15:0] joy1,
+  input [15:0] joy2,
+  input [15:0] joya1,
+  input [15:0] joya2,
+  output [5:0] sound
+
 );
 
 wire nmi = 1'b1;
@@ -138,17 +144,17 @@ rom_bas romA(
 // there must be another solution
 reg cart_loaded;
 always @(posedge clk)
-  if (ioctl_download & ioctl_wr)
+  if (ioctl_download & ~ioctl_wr)
     cart_loaded <= ioctl_addr > 15'h100;
 
-dpram #(.addr_width_g(13), .data_width_g(8)) romC(
+dpram #(.addr_width_g(14), .data_width_g(8)) romC(
   .clock_a(clk),
-  .address_a(mem_addr[12:0]),
+  .address_a(mem_addr[13:0]),
   .q_a(romC_dout),
   .enable_a(romC_cs),
 
   .clock_b(clk),
-  .address_b(ioctl_addr[12:0]),
+  .address_b(ioctl_addr[13:0]),
   .data_b(ioctl_data),
   .wren_b(ioctl_wr)
 );
@@ -206,11 +212,15 @@ pia6520 pia(
   .ca2_in(vsync),
   .cb1_in(),
   .cb2_in(),
-  .ca2_out(), // used for joy & snd
-  .cb2_out(), // used for joy & snd
+  .ca2_out(sela), // used for joy & snd
+  .cb2_out(selb), // used for joy & snd
   .clk(clk),
   .reset(~reset)
 );
+wire casdin0;
+wire rsout1;
+wire [5:0] dac_data;
+wire sela,selb;
 
 pia6520 pia1(
   .data_out(pia1_dout),
@@ -220,7 +230,7 @@ pia6520 pia1(
   .we(we),
   .irq(firq),
   .porta_in(),
-  .porta_out(),
+  .porta_out({casdin0,rsout1,dac_data}),
   .portb_in(),
   .portb_out(pia1_portb_out),
   .ca1_in(),
@@ -274,7 +284,7 @@ rom_chrrom chrrom(
   .addr(char_rom_addr),
   .dout(chr_dout)
 );
-
+wire hilo;
 keyboard kb(
 .clk_sys(clk),
 .reset(~reset),
@@ -283,9 +293,26 @@ keyboard kb(
 .kb_rows(kb_rows),
 .kblayout(1'b1),
 .Fn(),
-.modif()
+.modif(),
+.joystick_1_button(joy1[4]),
+.joystick_2_button(joy2[4]),
+.joystick_hilo(hilo)
+
 );
 
+dac dac(
+.clk(clk),
+.joya1(joya1),
+.joya2(joya2),
+.dac(dac_data),
+.snden(),
+.snd(),
+.hilo(hilo),
+.selb(selb),
+.sela(sela),
+.sound(sound)
+
+);
 
 
 assign debug_led = kb_rows != 8'hff;

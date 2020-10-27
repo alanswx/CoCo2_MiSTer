@@ -153,8 +153,10 @@ assign VGA_SL = 0;
 assign VGA_F1 = 0;
 
 assign AUDIO_S = 0;
-assign AUDIO_L = 0;
-assign AUDIO_R = 0;
+assign AUDIO_L = AUDIO_R;
+assign AUDIO_R = sound_pad;
+
+wire [15:0] sound_pad =  {1'b0,sound,1'b0,8'b0};
 assign AUDIO_MIX = 0;
 
 assign LED_DISK = 0;
@@ -176,6 +178,8 @@ localparam CONF_STR = {
 	"F1,CCC,Load Cartridge;",
 	"-;",
 	"R0,Reset;",
+	"J1,Button;",
+	"jn,A;",
 	"V,v",`BUILD_DATE
 };
 
@@ -188,6 +192,11 @@ wire        ioctl_wr;
 wire [15:0] ioctl_addr;
 wire  [7:0] ioctl_data;
 wire  [7:0] ioctl_index;
+
+wire [15:0] joy1, joy2;
+
+wire [15:0] joya1, joya2;
+
 
 hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 (
@@ -208,6 +217,12 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 	.ioctl_addr(ioctl_addr),
 	.ioctl_dout(ioctl_data),
 	.ioctl_index(ioctl_index),
+	
+	.joystick_0(joy1),
+   .joystick_1(joy2),
+
+   .joystick_analog_0(joya1),
+   .joystick_analog_1(joya2),
 
 
 	.ps2_key(ps2_key)
@@ -239,6 +254,14 @@ wire [4:0] red;
 wire [5:0] green;
 wire [4:0] blue;
 
+wire [5:0] sound;
+
+
+wire [9:0] center_joystick_y1   =  8'd127 + joya1[15:8];
+wire [9:0] center_joystick_x1   =  8'd127 + joya1[7:0];
+wire [9:0] center_joystick_y2   =  8'd127 + joya2[15:8];
+wire [9:0] center_joystick_x2   =  8'd127 + joya2[7:0];
+
 po8 po8(
   .clk(clk_sys), // 50 mhz
   .reset(~reset),
@@ -260,7 +283,18 @@ po8 po8(
   .ioctl_data(ioctl_data),
   .ioctl_download(ioctl_download),
   .ioctl_wr(ioctl_wr),
-  .artifact_phase(status[2])
+  .artifact_phase(status[2]),
+  .joy1(joy1),
+  .joy2(joy2),
+/*
+  .joya1(joya1),
+  .joya2(joya2),
+*/
+  .joya1({center_joystick_y1[7:0],center_joystick_x1[7:0]}),
+  .joya2({center_joystick_y2[7:0],center_joystick_x2[7:0]}),
+ 
+
+  .sound(sound)
 );
 
 
