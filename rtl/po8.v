@@ -27,7 +27,8 @@ module po8(
   input [15:0] joy2,
   input [15:0] joya1,
   input [15:0] joya2,
-  output [5:0] sound
+  output [5:0] sound,
+  output sndout
 
 );
 
@@ -221,6 +222,9 @@ wire casdin0;
 wire rsout1;
 wire [5:0] dac_data;
 wire sela,selb;
+wire snden;
+// 1 bit sound
+assign sndout = pia1_portb_out[1];
 
 pia6520 pia1(
   .data_out(pia1_dout),
@@ -230,7 +234,7 @@ pia6520 pia1(
   .we(we),
   .irq(firq),
   .porta_in(),
-  .porta_out({casdin0,rsout1,dac_data}),
+  .porta_out({dac_data,casdin0,rsout1}),
   .portb_in(),
   .portb_out(pia1_portb_out),
   .ca1_in(),
@@ -238,7 +242,7 @@ pia6520 pia1(
   .cb1_in(cart_loaded & reset & Q), // cartridge inserted
   .cb2_in(),
   .ca2_out(),
-  .cb2_out(),
+  .cb2_out(snden),
   .clk(clk),
   .reset(~reset)
 );
@@ -305,7 +309,7 @@ dac dac(
 .joya1(joya1),
 .joya2(joya2),
 .dac(dac_data),
-.snden(),
+.snden(snden),
 .snd(),
 .hilo(hilo),
 .selb(selb),

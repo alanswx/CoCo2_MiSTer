@@ -155,8 +155,8 @@ assign VGA_F1 = 0;
 assign AUDIO_S = 0;
 assign AUDIO_L = AUDIO_R;
 assign AUDIO_R = sound_pad;
-
-wire [15:0] sound_pad =  {1'b0,sound,1'b0,8'b0};
+wire sndout;
+wire [15:0] sound_pad =  {1'b0,sound,sndout,8'b0};
 assign AUDIO_MIX = 0;
 
 assign LED_DISK = 0;
@@ -290,11 +290,12 @@ po8 po8(
   .joya1(joya1),
   .joya2(joya2),
 */
-  .joya1({center_joystick_y1[7:0],center_joystick_x1[7:0]}),
-  .joya2({center_joystick_y2[7:0],center_joystick_x2[7:0]}),
+  .joya1({center_joystick_x1[7:0],center_joystick_y1[7:0]}),
+  .joya2({center_joystick_x2[7:0],center_joystick_y2[7:0]}),
  
 
-  .sound(sound)
+  .sound(sound),
+  .sndout(sndout)
 );
 
 

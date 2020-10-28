@@ -34,7 +34,8 @@ Sel B Sel A  joystick input sound Input
 
   
 */
-
+// 1 bit sound is not enabled / disabled by the snden
+// page 43 COCO2 NTSC Service Manual
 always @(posedge clk) begin
   if (snden && !selb && !sela) begin
     sound<=dac;
@@ -42,7 +43,6 @@ always @(posedge clk) begin
   else begin
     sound<=6'b0;
   end
-  
 end
 always @(posedge clk) begin
   case ({selb,sela})
