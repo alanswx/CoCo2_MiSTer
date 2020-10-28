@@ -156,7 +156,7 @@ assign AUDIO_S = 0;
 assign AUDIO_L = AUDIO_R;
 assign AUDIO_R = sound_pad;
 wire sndout;
-wire [15:0] sound_pad =  {1'b0,sound,sndout,8'b0};
+wire [15:0] sound_pad =  {sndout,sound,1'b0,8'b0};
 assign AUDIO_MIX = 0;
 
 assign LED_DISK = 0;

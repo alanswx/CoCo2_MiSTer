@@ -210,8 +210,8 @@ pia6520 pia(
   .portb_in(),
   .portb_out(kb_cols),
   .ca1_in(hsync),
-  .ca2_in(vsync),
-  .cb1_in(),
+  .ca2_in(),
+  .cb1_in(fs_n),  // vsync? ajs instead of ca2 in?
   .cb2_in(),
   .ca2_out(sela), // used for joy & snd
   .cb2_out(selb), // used for joy & snd
@@ -260,7 +260,7 @@ mc6847 vdg(
   .videoaddr(vdg_addr),
   .dd(ram_dout_b),
   .hs_n(),
-  .fs_n(),
+  .fs_n(fs_n),
   .an_g(pia1_portb_out[7]), // PIA1 port B
   .an_s(ram_dout_b[7]),
   .intn_ext(pia1_portb_out[4]),
