@@ -198,6 +198,9 @@ x74138 x74138(
   .O(cs74138)
 );
 
+wire fs_n;
+wire hs_n;
+
 pia6520 pia(
   .data_out(pia_dout),
   .data_in(cpu_dout),
@@ -209,7 +212,7 @@ pia6520 pia(
   .porta_out(),
   .portb_in(),
   .portb_out(kb_cols),
-  .ca1_in(hsync),
+  .ca1_in(hs_n),
   .ca2_in(),
   .cb1_in(fs_n),  // vsync? ajs instead of ca2 in?
   .cb2_in(),
@@ -259,7 +262,7 @@ mc6847 vdg(
   .da0(),
   .videoaddr(vdg_addr),
   .dd(ram_dout_b),
-  .hs_n(),
+  .hs_n(hs_n),
   .fs_n(fs_n),
   .an_g(pia1_portb_out[7]), // PIA1 port B
   .an_s(ram_dout_b[7]),

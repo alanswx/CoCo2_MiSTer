@@ -257,10 +257,10 @@ wire [4:0] blue;
 wire [5:0] sound;
 
 
-wire [9:0] center_joystick_y1   =  8'd127 + joya1[15:8];
-wire [9:0] center_joystick_x1   =  8'd127 + joya1[7:0];
-wire [9:0] center_joystick_y2   =  8'd127 + joya2[15:8];
-wire [9:0] center_joystick_x2   =  8'd127 + joya2[7:0];
+wire [9:0] center_joystick_y1   =  8'd128 + joya1[15:8];
+wire [9:0] center_joystick_x1   =  8'd128 + joya1[7:0];
+wire [9:0] center_joystick_y2   =  8'd128 + joya2[15:8];
+wire [9:0] center_joystick_x2   =  8'd128 + joya2[7:0];
 
 po8 po8(
   .clk(clk_sys), // 50 mhz
