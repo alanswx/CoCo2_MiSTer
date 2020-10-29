@@ -73,13 +73,13 @@ reg  [7:0] code;
 reg		  shiftstate = 0;
 
 // Output addressed row to ULA
-//always @(addr, joystick_1_button,joystick_2_button,joystick_hilo) begin
-always @(clk_sys) begin
+always @(addr, joystick_1_button,joystick_2_button,joystick_hilo) begin
+//always @(clk_sys) begin
 	kb_rows<=8'hff;
 	
 	
-	if (joystick_1_button) kb_rows[0]<=0;
-	if (joystick_2_button) kb_rows[1]<=0;
+	if (joystick_1_button) kb_rows[1]<=0;
+	if (joystick_2_button) kb_rows[0]<=0;
 	kb_rows[7]<=joystick_hilo;
 	
 	if (keys[0][0]==1'b0) if (addr[0] == 1'b0) kb_rows[0] <= 1'b0;

@@ -193,7 +193,7 @@ wire [15:0] ioctl_addr;
 wire  [7:0] ioctl_data;
 wire  [7:0] ioctl_index;
 
-wire [15:0] joy1, joy2;
+wire [31:0] joy1, joy2;
 
 wire [15:0] joya1, joya2;
 
