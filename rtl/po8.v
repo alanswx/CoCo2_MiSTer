@@ -28,7 +28,15 @@ module po8(
   input [15:0] joya1,
   input [15:0] joya2,
   output [5:0] sound,
-  output sndout
+  output sndout,
+  output [8:0] v_count,
+  output [8:0] vga_h_count,
+output [159:0] DLine1,
+output [159:0] DLine2
+
+  //reg [159:0] DLine1,DLine2;
+
+
 
 );
 
@@ -255,6 +263,10 @@ assign red = { r4, 1'b0 };
 assign green = { g4, 2'b0 };
 assign blue = { b4, 1'b0 };
 
+
+//reg [159:0] DLine1,DLine2;
+
+assign DLine1 = { 4'b0,pia1_portb_out[7],4'b0, ram_dout_b[7],4'b0,pia1_portb_out[4],2'b0,pia1_portb_out[6:4],4'b0,pia1_portb_out[3],4'b0,ram_dout_b[6],130'b0};
 mc6847 vdg(
   .clk(clk25),
   .clk_ena(VClk),
@@ -283,7 +295,10 @@ mc6847 vdg(
   .cvbs(),
   .black_backgnd(1'b1),
   .char_a(vdg_char_addr), // => char rom address
-  .char_d_o(char_data) // <= char rom data
+  .char_d_o(char_data), // <= char rom data
+  .v_count(v_count),
+  .vga_h_count(vga_h_count)
+
 );
 
 rom_chrrom chrrom(

@@ -16,6 +16,10 @@
 //
 //============================================================================
 
+// Enable overlay (or not)
+`define USE_OVERLAY
+
+
 module emu
 (
 	//Master input clock
@@ -175,6 +179,8 @@ localparam CONF_STR = {
 	"O1,Aspect ratio,4:3,16:9;",
 	"O2,Artifact Phase,Normal,Reverse;",
 	"-;",
+	"OB,Debug display,Off,On;",
+	"-;",
 	"F1,CCC,Load Cartridge;",
 	"-;",
 	"R0,Reset;",
@@ -295,7 +301,13 @@ po8 po8(
  
 
   .sound(sound),
-  .sndout(sndout)
+  .sndout(sndout),
+  
+  .v_count(VCount),
+  .vga_h_count(HCount),
+  .DLine1(DLine1),
+  .DLine2(DLine2)
+
 );
 
 
@@ -310,14 +322,67 @@ assign CE_PIXEL = ce_pix;
 assign VGA_DE = ~(HBlank | VBlank);
 assign VGA_HS = HSync;
 assign VGA_VS = VSync;
+/*
 assign VGA_G  = {green,green[5:4]};
 assign VGA_R  = {red,red[4:2]};
 assign VGA_B  = {blue,blue[4:2]};
+*/
+assign VGA_R=rr;
+assign VGA_G=gg;
+assign VGA_B=bb;
+
+wire fg = |{rr,gg,bb};
+
+`ifdef USE_OVERLAY
+	// mix in overlay!
+	wire [7:0]rr = {red,red[4:2]} | {C_R,C_R};
+	wire [7:0]gg = {green,green[5:4]} | {C_R,C_R};
+	wire [7:0]bb = {blue,blue[4:2]} | {C_R,C_R};
+`else
+	wire [7:0]rr = {red,red[4:2]};
+	wire [7:0]gg = {green,green[5:4]};
+	wire [7:0]bb = {blue,blue[4:2]};
+`endif
 
 reg  [26:0] act_cnt;
 always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1;
 	wire led;
 assign LED_USER    = led;
+
+reg [8:0] HCount,VCount;
+
+// Overlay!
+
+`ifdef USE_OVERLAY
+
+reg [3:0] C_R,C_G,C_B;
+reg [159:0] Line1,Line2;
+
+wire [159:0]DLine1;
+wire [159:0]DLine2;
+
+assign Line1= {145'b0,5'h12,5'h13,5'h1E};
+assign Line2= {5'h12,5'h12,5'h12,145'b0};
+ovo OVERLAY
+(
+    .i_r(4'd0),
+    .i_g(4'd0),
+    .i_b(4'd0),
+    .i_clk(ce_pix),
+	 
+	 .i_Hcount(HCount),
+	 .i_VCount(VCount),
+
+    .o_r(C_R),
+    .o_g(C_G),
+    .o_b(C_B),
+    .ena(status[11]),
+
+    .in0(DLine1),
+    .in1(Line2)
+);
+
+`endif
 
 
 endmodule

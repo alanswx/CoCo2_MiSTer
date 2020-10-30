@@ -26,7 +26,10 @@ module mc6847 (
                output [7:0]      cvbs,
                input             black_backgnd,
                output reg [10:0] char_a,
-               input [7:0]       char_d_o
+               input [7:0]       char_d_o,
+					output reg [8:0] v_count,
+					output reg [8:0] vga_h_count
+
                );
    
    parameter CVBS_NOT_VGA       = 0;
@@ -106,7 +109,7 @@ module mc6847 (
    // *******************************************************8
    
    // used by both CVBS and VGA
-   reg [8:0]                     v_count;
+   //reg [8:0]                     v_count;
    reg [3:0]                     row_v;
    
    
@@ -194,7 +197,7 @@ module mc6847 (
    // generate horizontal timing for VGA
    // generate line buffer address for reading VGA char_d_o
    
-   reg [8:0] vga_h_count;
+   //reg [8:0] vga_h_count;
    reg [7:0] vga_active_h_count;
    reg       vga_vblank_r;
    
