@@ -1,4 +1,4 @@
-module mc6847 (
+module mc6847v (
                input             clk,
                input             clk_ena,
                input             reset,

@@ -256,9 +256,9 @@ wire HSync;
 wire VBlank;
 wire VSync;
 
-wire [4:0] red;
-wire [5:0] green;
-wire [4:0] blue;
+wire [7:0] red;
+wire [7:0] green;
+wire [7:0] blue;
 
 wire [5:0] sound;
 
@@ -271,9 +271,11 @@ wire [9:0] center_joystick_x2   =  8'd128 + joya2[7:0];
 po8 po8(
   .clk(clk_sys), // 50 mhz
   .reset(~reset),
+  
   .red(red),
   .green(green),
   .blue(blue),
+  
   .hblank(HBlank),
   .vblank(VBlank),
   .hsync(HSync),
@@ -327,21 +329,22 @@ assign VGA_G  = {green,green[5:4]};
 assign VGA_R  = {red,red[4:2]};
 assign VGA_B  = {blue,blue[4:2]};
 */
+
+
 assign VGA_R=rr;
 assign VGA_G=gg;
 assign VGA_B=bb;
 
-wire fg = |{rr,gg,bb};
 
 `ifdef USE_OVERLAY
 	// mix in overlay!
-	wire [7:0]rr = {red,red[4:2]} | {C_R,C_R};
-	wire [7:0]gg = {green,green[5:4]} | {C_R,C_R};
-	wire [7:0]bb = {blue,blue[4:2]} | {C_R,C_R};
+	wire [7:0]rr = red | {C_R,C_R};
+	wire [7:0]gg = green | {C_R,C_R};
+	wire [7:0]bb = blue | {C_R,C_R};
 `else
-	wire [7:0]rr = {red,red[4:2]};
-	wire [7:0]gg = {green,green[5:4]};
-	wire [7:0]bb = {blue,blue[4:2]};
+	wire [7:0]rr = red;
+	wire [7:0]gg = green;
+	wire [7:0]bb = blue;
 `endif
 
 reg  [26:0] act_cnt;

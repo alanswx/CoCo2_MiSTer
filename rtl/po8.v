@@ -4,9 +4,13 @@
 module po8(
   input clk, // 50 mhz
   input reset, // todo: reset doesn't work!
-  output [4:0] red,
+/*  output [4:0] red,
   output [5:0] green,
   output [4:0] blue,
+  */
+  output [7:0] red,
+  output [7:0] green,
+  output [7:0] blue,
   output hblank,
   output vblank,
   output hsync,
@@ -259,15 +263,32 @@ pia6520 pia1(
 );
 
 wire [3:0] r4, g4, b4;
-assign red = { r4, 1'b0 };
-assign green = { g4, 2'b0 };
-assign blue = { b4, 1'b0 };
+assign red = { r4,r4 };
+assign green = { g4, g4};
+assign blue = { b4, b4};
 
 
 //reg [159:0] DLine1,DLine2;
 
-assign DLine1 = { 4'b0,pia1_portb_out[7],4'b0, ram_dout_b[7],4'b0,pia1_portb_out[4],2'b0,pia1_portb_out[6:4],4'b0,pia1_portb_out[3],4'b0,ram_dout_b[6],130'b0};
-mc6847 vdg(
+
+assign DLine1 = {
+
+5'b10000,
+5'b11111,
+1'b0,pia1_portb_out[7:4],
+5'b10000,
+
+5'b10101,
+1'b0,pia1_portb_out[3:0],
+5'b10000,
+
+5'b11010,
+3'b0,ram_dout_b[7:6],
+5'b10000,
+
+110'b0};
+
+mc6847v vdg(
   .clk(clk25),
   .clk_ena(VClk),
   .reset(~reset),
@@ -285,6 +306,10 @@ mc6847 vdg(
   .red(r4),
   .green(g4),
   .blue(b4),
+  /*
+  .red(red),
+  .green(green),
+  .blue(blue),*/
   .hsync(hsync),
   .vsync(vsync),
   .hblank(hblank),
