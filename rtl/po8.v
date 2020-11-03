@@ -261,6 +261,8 @@ begin
 	begin
 		ras_n_r<=0;
 		cas_n_r<=0;
+		q_r<=0;
+		e_r<=0;
 	end
 	else if  (clk_14M318_ena == 1) 
 	begin
