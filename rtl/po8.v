@@ -49,13 +49,8 @@ wire halt = 1'b1;
 
 wire E, Q;
 wire VClk;
-
-reg clk25;
-always @(posedge clk)
-  clk25 <= ~clk25;
-
   
- /* 
+  
 reg clk_14M318_ena ;
 reg [1:0] count;
 always @(posedge clk)
@@ -76,7 +71,7 @@ begin
 		end
 	end
 end
-*/
+/*
 reg clk_14M318_ena;
 always @(posedge clk) begin
         reg [1:0] div;
@@ -84,7 +79,7 @@ always @(posedge clk) begin
         div <= div + 1'd1;
 	clk_14M318_ena <= div == 0;
 end
-
+*/
   
 wire [7:0] cpu_dout;
 wire [15:0] cpu_addr;
@@ -208,6 +203,7 @@ dpram #(.addr_width_g(14), .data_width_g(8)) romC(
 );
 
 wire [2:0] S;
+wire [2:0] SS;
 wire [15:0] sam_addr;
 reg [15:0] mem_addr;
 wire [6:0] disp_offset;
@@ -304,7 +300,7 @@ mc6883 sam2(
 			.vclk(),
 			
 			//-- peripheral address selects		
-			.s(),
+			.s(SS),
 			
 			//-- clock generation
 			.e(E),
@@ -324,6 +320,13 @@ mc6883 sam2(
 
 
 wire [7:0] cs74138;
+wire [7:0] cs74138a;
+assign {
+  io_cs, pia1_cs, pia_cs,
+  romC_cs, romA_cs, rom8_cs,
+  ram_cs
+} = cs74138;
+/*
 assign {
   io_cs, pia1_cs, pia_cs,
   romC_cs, romA_cs, rom8_cs,
@@ -335,6 +338,29 @@ x74138 x74138(
   .I(S),
   .O(cs74138)
 );
+*/
+
+ttl_74ls138_p u11(
+.a(S[0]),
+.b(S[1]),
+.c(S[2]),
+.g1(1),//comes from CART_SLENB#
+.g2a(1),//come from E NOR cs_sel(2)
+.g2b(1),
+.y(cs74138)
+);
+
+ttl_74ls138_p u11a(
+.a(SS[0]),
+.b(SS[1]),
+.c(SS[2]),
+.g1(1),//comes from CART_SLENB#
+.g2a(1),//come from E NOR cs_sel(2)
+.g2b(1),
+.y(cs74138a)
+);
+
+
 
 wire fs_n;
 wire hs_n;
@@ -356,7 +382,7 @@ pia6520 pia(
   .cb2_in(),
   .ca2_out(sela), // used for joy & snd
   .cb2_out(selb), // used for joy & snd
-  .clk(clk),
+  .clk(clk_14M318_ena),
   .reset(~reset)
 );
 wire casdin0;
@@ -384,7 +410,7 @@ pia6520 pia1(
   .cb2_in(),
   .ca2_out(),
   .cb2_out(snden),
-  .clk(clk),
+  .clk(clk_14M318_ena),
   .reset(~reset)
 );
 

@@ -20,6 +20,7 @@ set_global_assignment -name VHDL_FILE dpram.vhd
 set_global_assignment -name VERILOG_FILE rtl/mc6847v.v
 set_global_assignment -name VHDL_FILE rtl/mc6847.vhd
 set_global_assignment -name VHDL_FILE rtl/mc6883.vhd
+set_global_assignment -name VHDL_FILE rtl/ttl_74LS138.vhd
 set_global_assignment -name VHDL_FILE rtl/OVO.vhd
 
 set_global_assignment -name SYSTEMVERILOG_FILE CoCo2.sv
