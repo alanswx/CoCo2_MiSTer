@@ -157,8 +157,11 @@ dpram #(.addr_width_g(16), .data_width_g(8)) ram1(
   .q_a(/*ram_dout*/),
   .wren_a(we),
   .enable_a(ram_cs),
-  .enable_b(1'b1),
-
+  .enable_b(1'b1),  
+/*  .wren_a(~sam_we_n),
+  .enable_a(sam_we_n),
+  .enable_b(sam_we_n),
+*/
   //.clock_b(clk),
   //.address_b(vmem),
   //.q_b(ram_dout_b)
@@ -292,7 +295,7 @@ mc6883 sam2(
 
 			//-- input
 			.a(cpu_addr),//					=> cpu_a,
-			.rw_n(~we),//		=> cpu_r_wn,
+			.rw_n(cpu_rw),//		=> cpu_r_wn,
 
 			//-- vdg signals
 			.da0(da0),
@@ -347,16 +350,21 @@ ttl_74ls138_p u11(
 .g1(1),//comes from CART_SLENB#
 .g2a(1),//come from E NOR cs_sel(2)
 .g2b(1),
+//.g2a( ~(cpu_rw | S[2])),
+//.g2b(~(E| S[2])),//come from E NOR cs_sel(2)
 .y(cs74138)
 );
 
+//
+// Not sure why the SS from the new SAM doesn't work correctly
+//
 ttl_74ls138_p u11a(
 .a(SS[0]),
 .b(SS[1]),
 .c(SS[2]),
 .g1(1),//comes from CART_SLENB#
-.g2a(1),//come from E NOR cs_sel(2)
-.g2b(1),
+.g2a( ~(cpu_rw | SS[2])),
+.g2b(~(E| SS[2])),//come from E NOR cs_sel(2)
 .y(cs74138a)
 );
 
