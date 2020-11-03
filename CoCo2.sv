@@ -237,7 +237,7 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 
 ///////////////////////   CLOCKS   ///////////////////////////////
 
-wire clk_sys; // 50M
+wire clk_sys; // 57.272M
 pll pll
 (
 	.refclk(CLK_50M),

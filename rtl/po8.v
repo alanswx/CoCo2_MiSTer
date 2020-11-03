@@ -2,7 +2,7 @@
 
 // todo: find a better name
 module po8(
-  input clk, // 50 mhz
+  input clk, // 57.272 mhz
   input reset, // todo: reset doesn't work!
 /*  output [4:0] red,
   output [5:0] green,
@@ -54,6 +54,38 @@ reg clk25;
 always @(posedge clk)
   clk25 <= ~clk25;
 
+  
+ /* 
+reg clk_14M318_ena ;
+reg [1:0] count;
+always @(posedge clk)
+begin
+	if (~reset)
+		count<=0;
+	else
+	begin
+		clk_14M318_ena <= 0;
+		if (count == 'd3) 
+		begin
+		  clk_14M318_ena <= 1;
+        count <= 0;
+		end
+		else
+		begin
+			count<=count+1;
+		end
+	end
+end
+*/
+reg clk_14M318_ena;
+always @(posedge clk) begin
+        reg [1:0] div;
+
+        div <= div + 1'd1;
+	clk_14M318_ena <= div == 0;
+end
+
+  
 wire [7:0] cpu_dout;
 wire [15:0] cpu_addr;
 wire cpu_rw;
@@ -71,9 +103,9 @@ wire [7:0] chr_dout;
 
 // this should be managed by SAM
 wire [14:0] vmem = { disp_offset, 9'd0 } + vdg_addr;
-
-wire [7:0] ram_dout;
-wire [7:0] ram_dout_b;
+wire [7:0]vdg_data;
+reg [7:0] ram_dout;
+reg [7:0] ram_dout_b;
 wire [7:0] rom8_dout;
 wire [7:0] romA_dout;
 wire [7:0] romC_dout;
@@ -125,23 +157,26 @@ mc6809e cpu(
 
 dpram #(.addr_width_g(16), .data_width_g(8)) ram1(
   .clock_a(clk),
-  .address_a(mem_addr),
+  .address_a(cpu_addr),
   .data_a(cpu_dout),
-  .q_a(ram_dout),
+  .q_a(/*ram_dout*/),
   .wren_a(we),
   .enable_a(ram_cs),
   .enable_b(1'b1),
 
+  //.clock_b(clk),
+  //.address_b(vmem),
+  //.q_b(ram_dout_b)
   .clock_b(clk),
-  .address_b(vmem),
-  .q_b(ram_dout_b)
+  .address_b(sam_a),
+  .q_b(vdg_data)
 );
 
 // 8k extended basic rom
 // Do we need an option to enable/disable extended basic rom?
 rom_ext rom8(
   .clk(clk),
-  .addr(mem_addr[12:0]),
+  .addr(cpu_addr[12:0]),
   .dout(rom8_dout),
   .cs(~rom8_cs)
 );
@@ -149,7 +184,7 @@ rom_ext rom8(
 // 8k color basic rom
 rom_bas romA(
   .clk(clk),
-  .addr(mem_addr[12:0]),
+  .addr(cpu_addr[12:0]),
   .dout(romA_dout),
   .cs(~romA_cs)
 );
@@ -162,7 +197,7 @@ always @(posedge clk)
 
 dpram #(.addr_width_g(14), .data_width_g(8)) romC(
   .clock_a(clk),
-  .address_a(mem_addr[13:0]),
+  .address_a(cpu_addr[13:0]),
   .q_a(romC_dout),
   .enable_a(romC_cs),
 
@@ -185,6 +220,8 @@ always @(posedge Q)
 // - Z is 16bit
 // - no VDG address generation
 // - and a lot of missing signals
+
+/*
 sam sam(
   .clk(clk),
   .Ai(cpu_addr),
@@ -196,6 +233,93 @@ sam sam(
   .iRW(~we),
   .disp_offset(disp_offset)
 );
+*/
+
+sam sam(
+  .clk(clk),
+  .Ai(cpu_addr),
+  .Zo(sam_addr),
+  .Q(),
+  .E(),
+  .VClk(),
+  .S(S),
+  .iRW(~we),
+  .disp_offset(disp_offset)
+);
+
+
+wire da0;
+wire [7:0] ma;
+wire ras_n, cas_n,sam_we_n;
+reg [15:0] sam_a;
+reg ras_n_r;
+reg cas_n_r;
+reg q_r,e_r;
+always @(posedge clk)
+begin
+	if (~reset) 
+	begin
+		ras_n_r<=0;
+		cas_n_r<=0;
+	end
+	else if  (clk_14M318_ena == 1) 
+	begin
+	     if (ras_n == 1 && ras_n_r == 0 &&  E ==1)
+		  begin
+		    //  ram_datao <= sram_i.d(ram_datao'range);
+			 ram_dout<=vdg_data;
+        end
+        if (ras_n == 0 && ras_n_r == 1)
+          sam_a[7:0]<= ma;
+        else if (cas_n == 0 && cas_n_r == 1)
+          sam_a[15:8] <= ma;
+			 
+		  if (Q == 1 && q_r == 0)
+		  begin
+		   ram_dout_b<=vdg_data;// <= sram_i.d(ram_datao'range);
+        end
+        e_r <= E;
+        q_r <= Q;
+
+			 
+        ras_n_r <= ras_n;
+        cas_n_r <= cas_n;		
+	end
+end
+
+mc6883 sam2(
+			.clk(clk),//				=> clk_57M272,
+			.clk_ena(clk_14M318_ena),
+			.reset(~reset),//			=> platform_rst,
+
+			//-- input
+			.a(cpu_addr),//					=> cpu_a,
+			.rw_n(~we),//		=> cpu_r_wn,
+
+			//-- vdg signals
+			.da0(da0),
+			.hs_n(hs_n),
+			.vclk(),
+			
+			//-- peripheral address selects		
+			.s(),
+			
+			//-- clock generation
+			.e(E),
+			.q(Q),
+
+			//-- dynamic addresses
+			.z(ma),
+
+			//-- ram
+			.ras0_n(ras_n),
+			.cas_n(cas_n),
+			.we_n(sam_we_n),
+			
+			.dbg()//sam_dbg
+);
+
+
 
 wire [7:0] cs74138;
 assign {
@@ -289,10 +413,10 @@ assign DLine1 = {
 110'b0};
 
 mc6847v vdg(
-  .clk(clk25),
-  .clk_ena(VClk),
+  .clk(clk),
+  .clk_ena(clk_14M318_ena/*VClk*/),
   .reset(~reset),
-  .da0(),
+  .da0(da0),
   .videoaddr(vdg_addr),
   .dd(ram_dout_b),
   .hs_n(hs_n),
