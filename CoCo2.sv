@@ -267,7 +267,7 @@ wire [9:0] center_joystick_y1   =  8'd128 + joya1[15:8];
 wire [9:0] center_joystick_x1   =  8'd128 + joya1[7:0];
 wire [9:0] center_joystick_y2   =  8'd128 + joya2[15:8];
 wire [9:0] center_joystick_x2   =  8'd128 + joya2[7:0];
-
+wire vclk;
 po8 po8(
   .clk(clk_sys), // 50 mhz
   .reset(~reset),
@@ -280,6 +280,7 @@ po8 po8(
   .vblank(VBlank),
   .hsync(HSync),
   .vsync(VSync),
+  .vclk(vclk),
   // input ps2_clk,
   // input ps2_dat,
   .uart_din(1'b0),
@@ -319,7 +320,7 @@ always @(posedge clk_sys) begin
 end
 
 assign CLK_VIDEO = clk_sys;
-assign CE_PIXEL = ce_pix;
+assign CE_PIXEL = vclk;
 
 assign VGA_DE = ~(HBlank | VBlank);
 assign VGA_HS = HSync;

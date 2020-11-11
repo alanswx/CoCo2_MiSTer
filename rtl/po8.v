@@ -15,6 +15,7 @@ module po8(
   output vblank,
   output hsync,
   output vsync,
+  output vclk,
   // input ps2_clk,
   // input ps2_dat,
   input uart_din,
@@ -50,7 +51,7 @@ wire halt = 1'b1;
 wire E, Q;
 wire VClk;
   
-  
+assign vclk =clk_14M318_ena; 
 reg clk_14M318_ena ;
 reg [1:0] count;
 always @(posedge clk)
