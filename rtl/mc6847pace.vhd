@@ -644,7 +644,8 @@ begin
 		)
 		port map
 		(
-			wrclock		=> cvbs_clk_ena,
+			wrclock		=> clk,
+			wrclocken   => cvbs_clk_ena,
 			wren			=> cvbs_linebuf_we_rr,
 			wraddress	=> cvbs_linebuf_addr_rr,
 			data			=> pixel_data,
