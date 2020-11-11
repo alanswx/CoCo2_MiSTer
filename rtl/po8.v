@@ -99,7 +99,7 @@ wire [7:0] chr_dout;
 // this should be managed by SAM
 wire [14:0] vmem = { disp_offset, 9'd0 } + vdg_addr;
 wire [7:0]vdg_data;
-reg [7:0] ram_dout;
+wire [7:0] ram_dout;
 reg [7:0] ram_dout_b;
 wire [7:0] rom8_dout;
 wire [7:0] romA_dout;
@@ -268,7 +268,7 @@ begin
 	     if (ras_n == 1 && ras_n_r == 0 &&  E ==1)
 		  begin
 		    //  ram_datao <= sram_i.d(ram_datao'range);
-			 ram_dout<=vdg_data;
+			// ram_dout<=vdg_data;
         end
         if (ras_n == 0 && ras_n_r == 1)
           sam_a[7:0]<= ma;
@@ -287,6 +287,8 @@ begin
         cas_n_r <= cas_n;		
 	end
 end
+			assign ram_dout=vdg_data;
+
 
 mc6883 sam2(
 			.clk(clk),//				=> clk_57M272,
@@ -421,12 +423,12 @@ pia6520 pia1(
   .clk(clk_14M318_ena),
   .reset(~reset)
 );
-
+/*
 wire [3:0] r4, g4, b4;
 assign red = { r4,r4 };
 assign green = { g4, g4};
 assign blue = { b4, b4};
-
+*/
 
 //reg [159:0] DLine1,DLine2;
 
@@ -447,10 +449,10 @@ assign DLine1 = {
 5'b10000,
 
 110'b0};
-
+/*
 mc6847v vdg(
   .clk(clk),
-  .clk_ena(clk_14M318_ena/*VClk*/),
+  .clk_ena(clk_14M318_ena),
   .reset(~reset),
   .da0(da0),
   .videoaddr(vdg_addr),
@@ -466,10 +468,6 @@ mc6847v vdg(
   .red(r4),
   .green(g4),
   .blue(b4),
-  /*
-  .red(red),
-  .green(green),
-  .blue(blue),*/
   .hsync(hsync),
   .vsync(vsync),
   .hblank(hblank),
@@ -485,6 +483,36 @@ mc6847v vdg(
   .vga_h_count(vga_h_count)
 
 );
+*/
+
+mc6847pace vdg(
+  .clk(clk),
+  .clk_ena(clk_14M318_ena/*VClk*/),
+  .reset(~reset),
+  .da0(da0),
+  .dd(ram_dout_b),
+  .hs_n(hs_n),
+  .fs_n(fs_n),
+  .an_g(pia1_portb_out[7]), // PIA1 port B
+  .an_s(ram_dout_b[7]),
+  .intn_ext(pia1_portb_out[4]),
+  .gm(pia1_portb_out[6:4]), // [2:0] pin 6 (gm2),5 (gm1) & 4 (gm0) PIA1 port B
+  .css(pia1_portb_out[3]),
+  .inv(ram_dout_b[6]),
+  .red(red),
+  .green(green),
+  .blue(blue),
+  .hsync(hsync),
+  .vsync(vsync),
+  .hblank(hblank),
+  .vblank(vblank),
+  .artifact_en(1'b1),
+  .artifact_set(1'b0),
+  .artifact_phase(artifact_phase),
+  .cvbs()
+);
+
+
 
 rom_chrrom chrrom(
   .clk(clk),
