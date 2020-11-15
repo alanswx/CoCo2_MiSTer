@@ -9,7 +9,7 @@ entity mc6847pace  is
 		T1_VARIANT      : boolean := false;
 		CHAR_ROM_FILE	  : string := "mc6847_ntsc.hex";
 		
-    CVBS_NOT_VGA    : boolean := false
+    CVBS_NOT_VGA    : boolean := true
 	);
 	port
 	(
@@ -360,7 +360,7 @@ begin
           cvbs_hblank <= '1';
           -- only needed for debug???
           active_h_count := active_h_count + 1;
-        elsif h_count = H_RIGHT_BORDER then
+        elsif h_count =  H_RIGHT_BORDER then
           null;
         else
           active_h_count := active_h_count + 1;
@@ -572,7 +572,8 @@ begin
       if CVBS_NOT_VGA then
         if cvbs_clk_ena = '1' then
           if cvbs_hblank = '0' and cvbs_vblank = '0' then				
-            map_palette (vga_data, r, g, b);
+            --map_palette (vga_data, r, g, b);
+				map_palette(pixel_data,r,g,b);
           else
             r := (others => '0');
             g := (others => '0');
