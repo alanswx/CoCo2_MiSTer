@@ -51,7 +51,6 @@ wire halt = 1'b1;
 wire E, Q;
 wire VClk;
   
-assign vclk =clk_14M318_ena; 
 reg clk_14M318_ena ;
 reg [1:0] count;
 always @(posedge clk)
@@ -571,6 +570,7 @@ mc6847pace vdg(
   .artifact_en(1'b1),
   .artifact_set(1'b0),
   .artifact_phase(artifact_phase),
+  .pixel_clock(vclk),
   .cvbs()
 );
 

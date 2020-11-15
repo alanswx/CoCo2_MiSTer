@@ -50,7 +50,8 @@ entity mc6847pace  is
     artifact_phase  : in std_logic;
     
     -- CVBS output
-    cvbs      : out std_logic_vector(7 downto 0)
+    cvbs      : out std_logic_vector(7 downto 0);
+	 pixel_clock : out std_logic
 	);
 end mc6847pace;
 
@@ -570,10 +571,38 @@ begin
       count := '0';
     elsif rising_edge(clk) then
       if CVBS_NOT_VGA then
+		  
         if cvbs_clk_ena = '1' then
+		  if cvbs_hblank = '1' then
+		      count := '0';
+            p_in := (others => '0');
+			end if;
           if cvbs_hblank = '0' and cvbs_vblank = '0' then				
             --map_palette (vga_data, r, g, b);
-				map_palette(pixel_data,r,g,b);
+				--map_palette(pixel_data,r,g,b);
+				
+				if artifact_en = '1' and an_g_s = '1' and gm_s = "111" then
+              if count /= '0' then
+                p_out(p_out'left downto 4) := pixel_data(p_out'left downto 4);
+                if p_in(3) = '0' and pixel_data(3) = '0' then
+                  p_out(3 downto 0) := "0000";
+                elsif p_in(3) = '1' and pixel_data(3) = '1' then
+                  p_out(3 downto 0) := "1100";
+                elsif p_in(3) = '0' and pixel_data(3) = '1' then
+                  p_out(3 downto 0) := "1011";  -- red
+                  --p_out(3 downto 0) := "1101";  -- cyan
+                else
+                  p_out(3 downto 0) := "1010";  -- blue
+                  --p_out(3 downto 0) := "1111";  -- orange
+                end if;
+              end if;
+              map_palette (p_out, r, g, b);
+              p_in := pixel_data;
+            else
+              map_palette (pixel_data, r, g, b);
+				end if;
+				count := not count;
+
           else
             r := (others => '0');
             g := (others => '0');
@@ -627,11 +656,13 @@ begin
       vsync <= cvbs_vsync;
       hblank <= cvbs_hblank;
       vblank <= cvbs_vblank;
+		pixel_clock<=cvbs_clk_ena;
     else
       hsync <= vga_hsync;
       vsync <= vga_vsync;
       hblank <= not vga_hborder; --vga_hblank;
       vblank <= not cvbs_vborder; --vga_vblank;
+		pixel_clock<=vga_clk_ena;
     end if;
   end process PROC_OUTPUT;
 
