@@ -405,7 +405,8 @@ begin
       count := (others => '0');
     elsif rising_edge(clk) and cvbs_clk_ena = '1' then
       if active_h_start = '1' then
-        count := (others => '0');
+        --count := (others => '1');
+        count :=  "0010";
       end if;
       if an_g_s = '0' then
         -- alpha-semi modes

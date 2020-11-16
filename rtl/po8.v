@@ -510,7 +510,7 @@ assign DLine1 = {
 5'b10000,
 
 110'b0};
-
+/*
 mc6847v vdg(
   .clk(clk),
   .clk_ena(clk_14M318_ena),
@@ -546,7 +546,7 @@ mc6847v vdg(
 
 
 );
-/*
+*/
 
 mc6847pace vdg(
   .clk(clk),
@@ -575,7 +575,7 @@ mc6847pace vdg(
   .pixel_clock(vclk),
   .cvbs()
 );
-*/
+
 
 
 rom_chrrom chrrom(
