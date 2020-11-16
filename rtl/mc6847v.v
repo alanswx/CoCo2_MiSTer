@@ -13,9 +13,9 @@ module mc6847v (
                input [2:0]       gm,
                input             css,
                input             inv,
-               output reg [3:0]  red,
-               output reg [3:0]  green,
-               output reg [3:0]  blue,
+               output reg [7:0]  red,
+               output reg [7:0]  green,
+               output reg [7:0]  blue,
                output reg        hsync,
                output reg        vsync,
                output reg        hblank,
@@ -28,11 +28,13 @@ module mc6847v (
                output reg [10:0] char_a,
                input [7:0]       char_d_o,
 					output reg [8:0] v_count,
-					output reg [8:0] vga_h_count
+					output reg [8:0] vga_h_count,
+					output reg		 pixel_clock
+
 
                );
    
-   parameter CVBS_NOT_VGA       = 0;
+   parameter CVBS_NOT_VGA       = 1;
    
    parameter H_FRONT_PORCH      = 8;
    parameter H_HORIZ_SYNC       = H_FRONT_PORCH + 48;
@@ -113,7 +115,7 @@ module mc6847v (
    reg [3:0]                     row_v;
    
    
-   function [11:0] map_palette;
+   function [23:0] map_palette;
       input [7:0]                vga_char_d_o;
       // parts of input
       reg                        css_v;
@@ -162,7 +164,7 @@ module mc6847v (
                 end
               b = 2'b00;
            end
-         map_palette = { r, 2'b0, g, 2'b0, b, 2'b0};
+         map_palette = { r, 6'b0, g, 6'b0, b, 6'b0};
       end
    endfunction
    
@@ -630,7 +632,8 @@ module mc6847v (
                   if (cvbs_clk_ena)
                     begin
                        if (cvbs_hblank == 1'b0 && cvbs_vblank == 1'b0)
-                         {red, green, blue} <= map_palette (vga_char_d_o);
+                         //{red, green, blue} <= map_palette (vga_char_d_o);
+								 {red,green,blue}<=map_palette(pixel_char_d_o);
                        else
                          {red, green, blue} <= 0;
                     end
@@ -684,6 +687,7 @@ module mc6847v (
                   vsync  <= cvbs_vsync;
                   hblank <= cvbs_hblank;
                   vblank <= cvbs_vblank;
+						pixel_clock<=cvbs_clk_ena;
                end
              else
                begin
@@ -691,6 +695,7 @@ module mc6847v (
                   vsync  <= vga_vsync;
                   hblank <= !vga_hborder;
                   vblank <= !cvbs_vborder;
+						pixel_clock <=clk_ena;
                end // else: !if(CVBS_NOT_VGA)
           end // else: !if(CVBS_NOT_VGA)
      end // always @ (posedge clk, posedge reset)

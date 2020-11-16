@@ -510,7 +510,7 @@ assign DLine1 = {
 5'b10000,
 
 110'b0};
-/*
+
 mc6847v vdg(
   .clk(clk),
   .clk_ena(clk_14M318_ena),
@@ -526,9 +526,9 @@ mc6847v vdg(
   .gm(pia1_portb_out[6:4]), // [2:0] pin 6 (gm2),5 (gm1) & 4 (gm0) PIA1 port B
   .css(pia1_portb_out[3]),
   .inv(ram_dout_b[6]),
-  .red(r4),
-  .green(g4),
-  .blue(b4),
+  .red(red),
+  .green(green),
+  .blue(blue),
   .hsync(hsync),
   .vsync(vsync),
   .hblank(hblank),
@@ -541,14 +541,16 @@ mc6847v vdg(
   .char_a(vdg_char_addr), // => char rom address
   .char_d_o(char_data), // <= char rom data
   .v_count(v_count),
-  .vga_h_count(vga_h_count)
+  .vga_h_count(vga_h_count),
+  .pixel_clock(vclk)
+
 
 );
-*/
+/*
 
 mc6847pace vdg(
   .clk(clk),
-  .clk_ena(clk_14M318_ena/*VClk*/),
+  .clk_ena(clk_14M318_ena),//VClk
   .reset(~reset),
   .da0(da0),
   .dd(ram_dout_b),
@@ -573,7 +575,7 @@ mc6847pace vdg(
   .pixel_clock(vclk),
   .cvbs()
 );
-
+*/
 
 
 rom_chrrom chrrom(
