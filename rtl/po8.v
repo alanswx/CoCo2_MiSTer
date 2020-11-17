@@ -132,6 +132,7 @@ wire [7:0] cpu_din =
   io_cs   ? io_out : 8'hff;
 
 mc6809e cpu(
+  .clk(clk),
   .D(cpu_din),
   .DOut(cpu_dout),
   .ADDR(cpu_addr),
