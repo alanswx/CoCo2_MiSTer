@@ -346,9 +346,9 @@ x74138 x74138(
 */
 
 ttl_74ls138_p u11(
-.a(S[0]),
-.b(S[1]),
-.c(S[2]),
+.a(SS[0]),
+.b(SS[1]),
+.c(SS[2]),
 .g1(1),//comes from CART_SLENB#
 .g2a(1),//come from E NOR cs_sel(2)
 .g2b(1),
@@ -374,7 +374,7 @@ ttl_74ls138_p u11a(
 
 wire fs_n;
 wire hs_n;
-/*
+
 pia6520 pia(
   .data_out(pia_dout),
   .data_in(cpu_dout),
@@ -392,10 +392,11 @@ pia6520 pia(
   .cb2_in(),
   .ca2_out(sela), // used for joy & snd
   .cb2_out(selb), // used for joy & snd
-  .clk(clk_14M318_ena),
+  .clk(clk),
+  .clk_ena(clk_14M318_ena),
   .reset(~reset)
 );
-*/
+/*
 assign irq = irqa | irqb;
 wire irqa,irqb;
 
@@ -424,7 +425,7 @@ pia6821 pia(
 	.cb2_o(selb),
 	.cb2_oe()
 );
-
+*/
 wire casdin0;
 wire rsout1;
 wire [5:0] dac_data;
@@ -432,7 +433,7 @@ wire sela,selb;
 wire snden;
 // 1 bit sound
 assign sndout = pia1_portb_out[1];
-/*
+
 pia6520 pia1(
   .data_out(pia1_dout),
   .data_in(cpu_dout),
@@ -450,10 +451,11 @@ pia6520 pia1(
   .cb2_in(),
   .ca2_out(),
   .cb2_out(snden),
-  .clk(clk_14M318_ena),
+  .clk(clk),
+  .clk_ena(clk_14M318_ena),
   .reset(~reset)
 );
-*/
+/*
 assign firq = irq1a | irq1b;
 wire irq1a,irq1b;
 pia6821 pia1(
@@ -481,7 +483,7 @@ pia6821 pia1(
 	.cb2_o(snden),
 	.cb2_oe()
 );
-
+*/
 
 
 /*

@@ -305,7 +305,8 @@ begin
 						"000"	when	-- $0000-$7FFF (32K) RW_N=1
 												a(15) = '0' and rw_n = '1'
 									else
-						"111" when	-- $0000-$7FFF (32K) RW_N=0
+						---"111" when	-- $0000-$7FFF (32K) RW_N=0
+						"000" when	-- $0000-$7FFF (32K) RW_N=0
 												a(15) = '0' and rw_n = '0';
 
 	s_ty1 <= 	s_ty0 when	-- $FF00-$FFFF
