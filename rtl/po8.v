@@ -212,40 +212,10 @@ wire [15:0] sam_addr;
 reg [15:0] mem_addr;
 wire [6:0] disp_offset;
 
-// to keep it stable for CPU
-always @(posedge Q)
-  mem_addr <= sam_addr;
 
-// Simplified version of SAM:
-// - Z is 16bit
-// - no VDG address generation
-// - and a lot of missing signals
 
-/*
-sam sam(
-  .clk(clk),
-  .Ai(cpu_addr),
-  .Zo(sam_addr),
-  .Q(Q),
-  .E(E),
-  .VClk(VClk),
-  .S(S),
-  .iRW(~we),
-  .disp_offset(disp_offset)
-);
-*/
 
-sam sam(
-  .clk(clk),
-  .Ai(cpu_addr),
-  .Zo(sam_addr),
-  .Q(),
-  .E(),
-  .VClk(),
-  .S(S),
-  .iRW(~we),
-  .disp_offset(disp_offset)
-);
+
 
 
 wire da0;
@@ -361,6 +331,7 @@ ttl_74ls138_p u11(
 //
 // Not sure why the SS from the new SAM doesn't work correctly
 //
+/*
 ttl_74ls138_p u11a(
 .a(SS[0]),
 .b(SS[1]),
@@ -370,7 +341,7 @@ ttl_74ls138_p u11a(
 .g2b(~(E| SS[2])),//come from E NOR cs_sel(2)
 .y(cs74138a)
 );
-
+*/
 
 
 wire fs_n;
