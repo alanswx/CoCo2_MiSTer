@@ -590,11 +590,23 @@ begin
                 elsif p_in(3) = '1' and pixel_data(3) = '1' then
                   p_out(3 downto 0) := "1100";
                 elsif p_in(3) = '0' and pixel_data(3) = '1' then
-                  p_out(3 downto 0) := "1011";  -- red
+
+					   if artifact_phase = '0' then
+                    p_out(3 downto 0) := "1010";  -- blue
+						else
+                    p_out(3 downto 0) := "1011";  -- red
+						end if;
                   --p_out(3 downto 0) := "1101";  -- cyan
+
                 else
-                  p_out(3 downto 0) := "1010";  -- blue
+
+					   if artifact_phase = '0' then
+                    p_out(3 downto 0) := "1011";  -- red
+						else
+                    p_out(3 downto 0) := "1010";  -- blue
+						end if;
                   --p_out(3 downto 0) := "1111";  -- orange
+
                 end if;
               end if;
               map_palette (p_out, r, g, b);
