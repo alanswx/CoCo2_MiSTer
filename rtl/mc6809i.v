@@ -43,7 +43,7 @@ module mc6809i
     parameter ILLEGAL_INSTRUCTIONS="GHOST"
 ) 
 (
-
+    input   clk,
     input   [7:0]  D,
     output  [7:0]  DOut,
     output  [15:0] ADDR,
@@ -562,8 +562,16 @@ end
 // analyzer on the 6809 to determine how many cycles before a new instruction an interrupt (or /HALT & /DMABREQ)
 // had to be asserted to be noted instead of the next instruction running start to finish.  
 // 
-always @(negedge Q)
+//always @(negedge Q)
+
+reg q_r,e_r;
+
+
+		  
+always @(negedge clk)
 begin
+   if (Q==0 && q_r ==1) 
+	begin
     NMISample <= nNMI;
     
     IRQSample <= nIRQ;
@@ -573,73 +581,79 @@ begin
     HALTSample <= nHALT;
     
     DMABREQSample <= nDMABREQ;
-
-        
+	end
+   q_r <= Q;
+ 
 end
 
 
 reg rnRESET=0; // The latched version of /RESET, useful 1 clock after it's latched
-always @(negedge E)
+always @(negedge clk)
 begin
-    rnRESET <= nRESET;
-    
-    NMISample2 <= NMISample;
-    
-    IRQSample2 <= IRQSample;
-    IRQLatched <= IRQSample2;
+    if (E==0 && e_r ==1) 
+	 begin
+		 rnRESET <= nRESET;
+		 
+		 NMISample2 <= NMISample;
+		 
+		 IRQSample2 <= IRQSample;
+		 IRQLatched <= IRQSample2;
 
-    FIRQSample2 <= FIRQSample;
-    FIRQLatched <= FIRQSample2;
+		 FIRQSample2 <= FIRQSample;
+		 FIRQLatched <= FIRQSample2;
 
-    HALTSample2 <= HALTSample;
-    HALTLatched <= HALTSample2;
+		 HALTSample2 <= HALTSample;
+		 HALTLatched <= HALTSample2;
 
-    DMABREQSample2 <= DMABREQSample;
-    DMABREQLatched <= DMABREQSample2;
+		 DMABREQSample2 <= DMABREQSample;
+		 DMABREQLatched <= DMABREQSample2;
 
 
-    if (rnRESET == 1)
-    begin
-        CpuState <= CpuState_nxt;
-        
-        // Don't interpret this next item as "The Next State"; it's a special case 'after this 
-        // generic state, go to this programmable state', so that a single state 
-        // can be shared for many tasks. [Specifically, the stack push/pull code, which is used
-        // for PSH, PUL, Interrupts, RTI, etc.
-        NextState <= NextState_nxt;
-         
-        // CPU registers latch from the combinatorial circuit
-        a <= a_nxt;
-        b <= b_nxt;
-        x <= x_nxt;
-        y <= y_nxt;
-        s <= s_nxt;
-        u <= u_nxt;
-        cc <= cc_nxt;
-        dp <= dp_nxt;
-        pc <= pc_nxt;
-        tmp <= tmp_nxt;
-        addr <= addr_nxt;
-        ea <= ea_nxt;
-        
-        InstPage2 <= InstPage2_nxt;
-        InstPage3 <= InstPage3_nxt;
-        Inst1 <= Inst1_nxt;
-        Inst2 <= Inst2_nxt;
-        Inst3 <= Inst3_nxt;
-        NMIClear <= NMIClear_nxt;
-        
-        IntType <= IntType_nxt;
-        
-        if (s != s_nxt)                 // Once S changes at all (default is '0'), release the NMI Mask.
-            NMIMask <= 1'b0;
-    end
-    else
-    begin
-        CpuState <= CPUSTATE_RESET; 
-        NMIMask <= 1'b1; // Mask NMI until S is loaded.
-        NMIClear <= 1'b0; // Mark us as not having serviced NMI
-    end
+		 if (rnRESET == 1)
+		 begin
+			  CpuState <= CpuState_nxt;
+			  
+			  // Don't interpret this next item as "The Next State"; it's a special case 'after this 
+			  // generic state, go to this programmable state', so that a single state 
+			  // can be shared for many tasks. [Specifically, the stack push/pull code, which is used
+			  // for PSH, PUL, Interrupts, RTI, etc.
+			  NextState <= NextState_nxt;
+				
+			  // CPU registers latch from the combinatorial circuit
+			  a <= a_nxt;
+			  b <= b_nxt;
+			  x <= x_nxt;
+			  y <= y_nxt;
+			  s <= s_nxt;
+			  u <= u_nxt;
+			  cc <= cc_nxt;
+			  dp <= dp_nxt;
+			  pc <= pc_nxt;
+			  tmp <= tmp_nxt;
+			  addr <= addr_nxt;
+			  ea <= ea_nxt;
+			  
+			  InstPage2 <= InstPage2_nxt;
+			  InstPage3 <= InstPage3_nxt;
+			  Inst1 <= Inst1_nxt;
+			  Inst2 <= Inst2_nxt;
+			  Inst3 <= Inst3_nxt;
+			  NMIClear <= NMIClear_nxt;
+			  
+			  IntType <= IntType_nxt;
+			  
+			  if (s != s_nxt)                 // Once S changes at all (default is '0'), release the NMI Mask.
+					NMIMask <= 1'b0;
+		 end
+		 else
+		 begin
+			  CpuState <= CPUSTATE_RESET; 
+			  NMIMask <= 1'b1; // Mask NMI until S is loaded.
+			  NMIClear <= 1'b0; // Mark us as not having serviced NMI
+		 end
+	end
+	e_r <= E;
+
 end
 
 

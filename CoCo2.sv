@@ -177,7 +177,12 @@ localparam CONF_STR = {
 	"CoCo2;;",
 	"-;",
 	"O1,Aspect ratio,4:3,16:9;",
+	"O4,Overscan,Hidden,Visible;",
+	"O3,Artifact,Enable,Disable;",
 	"O2,Artifact Phase,Normal,Reverse;",
+//	"O58,Count Offset,1,2,3,4;",
+	"-;",
+	"OA,Swap Joysticks,Off,On;",
 	"-;",
 	"OB,Debug display,Off,On;",
 	"-;",
@@ -237,7 +242,7 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 
 ///////////////////////   CLOCKS   ///////////////////////////////
 
-wire clk_sys; // 50M
+wire clk_sys; // 57.272M
 pll pll
 (
 	.refclk(CLK_50M),
@@ -267,6 +272,13 @@ wire [9:0] center_joystick_y1   =  8'd128 + joya1[15:8];
 wire [9:0] center_joystick_x1   =  8'd128 + joya1[7:0];
 wire [9:0] center_joystick_y2   =  8'd128 + joya2[15:8];
 wire [9:0] center_joystick_x2   =  8'd128 + joya2[7:0];
+wire vclk;
+
+wire [31:0] coco_joy1 = status[10] ? joy2 : joy1;
+wire [31:0] coco_joy2 = status[10] ? joy1 : joy2;
+
+wire [15:0] coco_ajoy1 = status[10] ? {center_joystick_x2[7:0],center_joystick_y2[7:0]} : {center_joystick_x1[7:0],center_joystick_y1[7:0]};
+wire [15:0] coco_ajoy2 = status[10] ? {center_joystick_x1[7:0],center_joystick_y1[7:0]} : {center_joystick_x2[7:0],center_joystick_y2[7:0]};
 
 po8 po8(
   .clk(clk_sys), // 50 mhz
@@ -280,6 +292,7 @@ po8 po8(
   .vblank(VBlank),
   .hsync(HSync),
   .vsync(VSync),
+  .vclk(vclk),
   // input ps2_clk,
   // input ps2_dat,
   .uart_din(1'b0),
@@ -292,14 +305,14 @@ po8 po8(
   .ioctl_download(ioctl_download),
   .ioctl_wr(ioctl_wr),
   .artifact_phase(status[2]),
-  .joy1(joy1),
-  .joy2(joy2),
-/*
-  .joya1(joya1),
-  .joya2(joya2),
-*/
-  .joya1({center_joystick_x1[7:0],center_joystick_y1[7:0]}),
-  .joya2({center_joystick_x2[7:0],center_joystick_y2[7:0]}),
+  .artifact_enable(~status[3]),
+  .overscan(status[4]),
+//  .count_offset(status[8:5]),
+  .joy1(coco_joy1),
+  .joy2(coco_joy2),
+
+  .joya1(coco_ajoy1),
+  .joya2(coco_ajoy2),
  
 
   .sound(sound),
@@ -319,7 +332,7 @@ always @(posedge clk_sys) begin
 end
 
 assign CLK_VIDEO = clk_sys;
-assign CE_PIXEL = ce_pix;
+assign CE_PIXEL = vclk;
 
 assign VGA_DE = ~(HBlank | VBlank);
 assign VGA_HS = HSync;

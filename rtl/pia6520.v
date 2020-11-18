@@ -65,6 +65,7 @@ module pia6520
 	input            cb2_in,
 
 	input            clk,
+	input            clk_ena,
 	input            reset
 );
 
@@ -93,38 +94,50 @@ wire portb_wr_strobe = wr_strobe && addr == ADDR_PORTB;
 
 // Implement CRA[5:0]
 always @(posedge clk) begin
-	if (reset) cra <= 6'b00_0000;
-	else if (wr_strobe && addr == ADDR_CRA) cra <= data_in[5:0];
+   if (clk_ena) begin
+		if (reset) cra <= 6'b00_0000;
+		else if (wr_strobe && addr == ADDR_CRA) cra <= data_in[5:0];
+	end
 end
 
 // Implement CRB[5:0]
 always @(posedge clk) begin
-	if (reset) crb <= 6'b00_0000;
-	else if (wr_strobe && addr == ADDR_CRB) crb <= data_in[5:0];
+   if (clk_ena) begin
+		if (reset) crb <= 6'b00_0000;
+		else if (wr_strobe && addr == ADDR_CRB) crb <= data_in[5:0];
+	end
 end
 
 // Implement PORTA (out)
 always @(posedge clk) begin
-	if (reset) porta_out <= 8'h00;
-	else if (wr_strobe && addr == ADDR_PORTA && cra[2]) porta_out <= data_in;
+   if (clk_ena) begin
+		if (reset) porta_out <= 8'h00;
+		else if (wr_strobe && addr == ADDR_PORTA && cra[2]) porta_out <= data_in;
+	end
 end
 
 // Implement DDRA
 always @(posedge clk) begin
-	if (reset) ddra <= 8'h00;
-	else if (wr_strobe && addr == ADDR_PORTA && !cra[2]) ddra <= data_in;
+   if (clk_ena) begin
+		if (reset) ddra <= 8'h00;
+		else if (wr_strobe && addr == ADDR_PORTA && !cra[2]) ddra <= data_in;
+	end
 end
 
 // Implement PORTB (out)
 always @(posedge clk) begin
-	if (reset) portb_out <= 8'h00;
-	else if (wr_strobe && addr == ADDR_PORTB && crb[2]) portb_out <= data_in;
+   if (clk_ena) begin
+		if (reset) portb_out <= 8'h00;
+		else if (wr_strobe && addr == ADDR_PORTB && crb[2]) portb_out <= data_in;
+	end
 end
 
 // Implement DDRB
 always @(posedge clk) begin
-	if (reset) ddrb <= 8'h00;
-	else if (wr_strobe && addr == ADDR_PORTB && !crb[2]) ddrb <= data_in;
+   if (clk_ena) begin
+		if (reset) ddrb <= 8'h00;
+		else if (wr_strobe && addr == ADDR_PORTB && !crb[2]) ddrb <= data_in;
+	end
 end
 
 ////////////////////////////////////////////////////////
@@ -134,8 +147,10 @@ end
 reg	ca1_in_1;
 reg ca2_in_1;
 always @(posedge clk) begin
-	ca1_in_1 <= ca1_in;
-	ca2_in_1 <= ca2_in;
+   if (clk_ena) begin
+		ca1_in_1 <= ca1_in;
+		ca2_in_1 <= ca2_in;
+	end
 end
 
 // detect "active" transitions
@@ -144,14 +159,18 @@ wire ca2_act_trans = ((ca2_in && !ca2_in_1 && cra[4]) || (!ca2_in && ca2_in_1 &&
 
 // IRQA1
 always @(posedge clk) begin
-	if (reset || (porta_rd_strobe && !ca1_act_trans)) irqa1 <= 1'b0;
-	else if (ca1_act_trans) irqa1 <= 1'b1;
+   if (clk_ena) begin
+		if (reset || (porta_rd_strobe && !ca1_act_trans)) irqa1 <= 1'b0;
+		else if (ca1_act_trans) irqa1 <= 1'b1;
+	end
 end
 
 // IRQA2
 always @(posedge clk) begin
-	if (reset || (porta_rd_strobe && !ca2_act_trans)) irqa2 <= 1'b0;
-	else if (ca2_act_trans && !cra[5]) irqa2 <= 1'b1;
+   if (clk_ena) begin
+		if (reset || (porta_rd_strobe && !ca2_act_trans)) irqa2 <= 1'b0;
+		else if (ca2_act_trans && !cra[5]) irqa2 <= 1'b1;
+	end
 end
 
    
@@ -162,8 +181,10 @@ end
 reg cb1_in_1;
 reg cb2_in_1;
 always @(posedge clk) begin
-	cb1_in_1 <= cb1_in;
-	cb2_in_1 <= cb2_in;
+   if (clk_ena) begin
+		cb1_in_1 <= cb1_in;
+		cb2_in_1 <= cb2_in;
+	end
 end
 
 // detect "active" transitions
@@ -172,16 +193,19 @@ wire cb2_act_trans = ((cb2_in && !cb2_in_1 && crb[4]) || (!cb2_in && cb2_in_1 &&
 
 // IRQB1
 always @(posedge clk) begin
-	if (reset || (portb_rd_strobe && !cb1_act_trans)) irqb1 <= 1'b0;
-	else if (cb1_act_trans) irqb1 <= 1'b1;
+   if (clk_ena) begin
+		if (reset || (portb_rd_strobe && !cb1_act_trans)) irqb1 <= 1'b0;
+		else if (cb1_act_trans) irqb1 <= 1'b1;
+	end
 end
 
 // IRQB2
 always @(posedge clk) begin
-	if (reset || (portb_rd_strobe && !cb2_act_trans)) irqb2 <= 1'b0;
-	else if (cb2_act_trans && !crb[5]) irqb2 <= 1'b1;
+   if (clk_ena) begin
+		if (reset || (portb_rd_strobe && !cb2_act_trans)) irqb2 <= 1'b0;
+		else if (cb2_act_trans && !crb[5]) irqb2 <= 1'b1;
+	end
 end
-
  
 // IRQ and enable logic.
 assign irq = (irqa1 && cra[0]) || (irqa2 && cra[3]) ||
@@ -190,27 +214,33 @@ assign irq = (irqa1 && cra[0]) || (irqa2 && cra[3]) ||
 ///////////////////////////////////////////////////
 // CA2 and CB2 output modes
 always @(posedge clk) begin
-	case (cra[5:3])
-		3'b100:  ca2_out <= irqa1;
-		3'b101:  ca2_out <= !ca1_act_trans;
-		3'b111:  ca2_out <= 1'b1;
-		default: ca2_out <= 1'b0;
-	endcase
+   if (clk_ena) begin
+		case (cra[5:3])
+			3'b100:  ca2_out <= irqa1;
+			3'b101:  ca2_out <= !ca1_act_trans;
+			3'b111:  ca2_out <= 1'b1;
+			default: ca2_out <= 1'b0;
+		endcase
+	end
 end
 
 reg cb2_out_r;
 always @(posedge clk) begin
-	if (reset || (portb_wr_strobe && !cb1_act_trans)) cb2_out_r <= 1'b0;
-	else if (cb1_act_trans) cb2_out_r <= 1'b1;
+   if (clk_ena) begin
+		if (reset || (portb_wr_strobe && !cb1_act_trans)) cb2_out_r <= 1'b0;
+		else if (cb1_act_trans) cb2_out_r <= 1'b1;
+	end
 end
 
 always @(posedge clk) begin
-	case (crb[5:3])
-		3'b100:  cb2_out <= cb2_out_r;
-		3'b101:  cb2_out <= !portb_wr_strobe;
-		3'b111:  cb2_out <= 1'b1;
-		default: cb2_out <= 1'b0;
-	endcase
+   if (clk_ena) begin
+		case (crb[5:3])
+			3'b100:  cb2_out <= cb2_out_r;
+			3'b101:  cb2_out <= !portb_wr_strobe;
+			3'b111:  cb2_out <= 1'b1;
+			default: cb2_out <= 1'b0;
+		endcase
+	end
 end
    
 ///////////////////////////////////////////////////
