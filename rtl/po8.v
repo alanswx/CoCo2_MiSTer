@@ -28,6 +28,9 @@ module po8(
   input ioctl_download,
   input ioctl_wr,
   input artifact_phase,
+  input artifact_enable,
+  input overscan,
+//  input [3:0] count_offset,
   input [15:0] joy1,
   input [15:0] joy2,
   input [15:0] joya1,
@@ -543,9 +546,11 @@ mc6847pace vdg(
   .vsync(vsync),
   .hblank(hblank),
   .vblank(vblank),
-  .artifact_en(1'b1),
+  .artifact_enable(artifact_enable),
   .artifact_set(1'b0),
   .artifact_phase(artifact_phase),
+  .overscan(overscan),
+//  .count_offset(count_offset),
   .pixel_clock(vclk),
   .cvbs()
 );

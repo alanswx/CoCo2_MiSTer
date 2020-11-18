@@ -45,9 +45,11 @@ entity mc6847pace  is
     vblank          : out std_logic;
 
     -- special inputs
-    artifact_en     : in std_logic;
+    artifact_enable     : in std_logic;
     artifact_set    : in std_logic;
     artifact_phase  : in std_logic;
+    overscan        : in std_logic;
+--    count_offset  : in std_logic_vector(3 downto 0);
     
     -- CVBS output
     cvbs      : out std_logic_vector(7 downto 0);
@@ -254,13 +256,23 @@ begin
         elsif h_count = H_HORIZ_SYNC then
           vga_hsync <= '1';
         elsif h_count = H_BACK_PORCH then
+		    if overscan = '1' then
+            vga_hblank <= '0';
+			 end if;
           vga_hborder <= '1';
         elsif h_count = H_LEFT_BORDER then
-          vga_hblank <= '0';
+		    if overscan = '0' then
+            vga_hblank <= '0';
+			 end if;
           active_h_count := (others => '0');
         elsif h_count = H_VIDEO then
-          vga_hblank <= '1';
+		    if overscan = '0' then
+            vga_hblank <= '1';
+			 end if;
         elsif h_count = H_RIGHT_BORDER then
+		    if overscan = '1' then
+            vga_hblank <= '1';
+			 end if;
           vga_hborder <= '0';
         else
           active_h_count := std_logic_vector(unsigned(active_h_count) + 1);
@@ -327,13 +339,23 @@ begin
           cvbs_vsync <= '1';
         elsif v_count = V2_BACK_PORCH then
           cvbs_vborder <= '1';
+		    if overscan = '1' then
+            cvbs_vblank <= '0';
+			 end if;
         elsif v_count = V2_TOP_BORDER then
-          cvbs_vblank <= '0';
+		    if overscan = '0' then
+            cvbs_vblank <= '0';
+			 end if;
           row_v := (others => '0');
           active_v_count := (others => '0');        -- debug only
         elsif v_count = V2_VIDEO then
-          cvbs_vblank <= '1';
+		    if overscan = '0' then
+            cvbs_vblank <= '1';
+			 end if;
         elsif v_count = V2_BOTTOM_BORDER then
+		    if overscan = '1' then
+            cvbs_vblank <= '1';
+			 end if;
           cvbs_vborder <= '0';
         else
           if row_v = 11 then
@@ -353,16 +375,25 @@ begin
         elsif h_count = H_HORIZ_SYNC then
           cvbs_hsync <= '1';
         elsif h_count = H_BACK_PORCH then
+  		    if overscan = '1' then
+            cvbs_hblank <= '0';
+			 end if;
         elsif h_count = H_LEFT_BORDER then
-          cvbs_hblank <= '0';
+  		    if overscan = '0' then
+            cvbs_hblank <= '0';
+			 end if;
           active_h_count := (others => '0');
           active_h_start <= '1';
         elsif h_count = H_VIDEO then
-          cvbs_hblank <= '1';
+  		    if overscan = '0' then
+            cvbs_hblank <= '1';
+			 end if;
           -- only needed for debug???
           active_h_count := active_h_count + 1;
         elsif h_count =  H_RIGHT_BORDER then
-          null;
+  		    if overscan = '1' then
+            cvbs_hblank <= '1';
+			 end if;
         else
           active_h_count := active_h_count + 1;
         end if;
@@ -407,6 +438,7 @@ begin
       if active_h_start = '1' then
         --count := (others => '1');
         count :=  "0010";
+        -- count :=  count_offset+1;
       end if;
       if an_g_s = '0' then
         -- alpha-semi modes
@@ -582,14 +614,14 @@ begin
             --map_palette (vga_data, r, g, b);
 				--map_palette(pixel_data,r,g,b);
 				
-				if artifact_en = '1' and an_g_s = '1' and gm_s = "111" then
-              if count /= '0' then
+				if artifact_enable = '1' and an_g_s = '1' and gm_s = "111" then
+              if count /= '0' then  -- second half-pix
                 p_out(p_out'left downto 4) := pixel_data(p_out'left downto 4);
-                if p_in(3) = '0' and pixel_data(3) = '0' then
+                if p_in(3) = '0' and pixel_data(3) = '0' then		--  p_in is prev pix; pixel_data is current pix; this is black
                   p_out(3 downto 0) := "0000";
-                elsif p_in(3) = '1' and pixel_data(3) = '1' then
+                elsif p_in(3) = '1' and pixel_data(3) = '1' then	--  this is white
                   p_out(3 downto 0) := "1100";
-                elsif p_in(3) = '0' and pixel_data(3) = '1' then
+                elsif p_in(3) = '0' and pixel_data(3) = '1' then	--  this is artifact color
 
 					   if artifact_phase = '0' then
                     p_out(3 downto 0) := "1010";  -- blue
@@ -630,7 +662,7 @@ begin
           end if;
           if vga_hblank = '0' and vga_vblank = '0' then
             -- artifacting test only --
-            if artifact_en = '1' and an_g_s = '1' and gm_s = "111" then
+            if artifact_enable = '1' and an_g_s = '1' and gm_s = "111" then
               if count /= '0' then
                 p_out(p_out'left downto 4) := vga_data(p_out'left downto 4);
                 if p_in(3) = '0' and vga_data(3) = '0' then
