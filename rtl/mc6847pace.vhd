@@ -271,8 +271,9 @@ begin
             vga_hblank <= '0';
 			 end if;
           active_h_count := (others => '0');
-        elsif h_count = H_VIDEO+1 then
+        elsif h_count = H_VIDEO then
 		    vga_active_disp_h <= '0';
+        elsif h_count = H_VIDEO+1 then
 		    if overscan = '0' then
             vga_hblank <= '1';
 			 end if;
@@ -396,8 +397,9 @@ begin
 			 end if;
           active_h_count := (others => '0');
           active_h_start <= '1';
-        elsif h_count = H_VIDEO+1 then
+        elsif h_count = H_VIDEO then
 		    cvbs_active_disp_h <= '0';
+        elsif h_count = H_VIDEO+1 then
   		    if overscan = '0' then
             cvbs_hblank <= '1';
 			 end if;
@@ -676,6 +678,7 @@ begin
           if vga_hblank = '1' then
             count := '0';
             p_in := (others => '0');
+            pixel_data <= (others => '0');
           end if;
           --if vga_hblank = '0' and vga_vblank = '0' then
           if vga_active_disp_h = '1' and cvbs_active_disp_v = '1' then
