@@ -114,6 +114,8 @@ architecture SYN of mc6847pace is
   signal vga_vsync            : std_logic;
   signal vga_hblank           : std_logic;
   signal vga_vblank           : std_logic;
+  signal vga_active_disp_h    : std_logic;
+  signal vga_active_disp_v    : std_logic;
 	signal vga_linebuf_addr			: std_logic_vector(8 downto 0);
 	signal vga_data							: std_logic_vector(7 downto 0);
 	signal vga_hborder          : std_logic;
@@ -126,6 +128,8 @@ architecture SYN of mc6847pace is
   signal cvbs_vsync           : std_logic;
   signal cvbs_hblank          : std_logic;
   signal cvbs_vblank          : std_logic;
+  signal cvbs_active_disp_h   : std_logic;
+  signal cvbs_active_disp_v   : std_logic;
   signal cvbs_hborder         : std_logic;
   signal cvbs_vborder         : std_logic;
 	signal cvbs_linebuf_we			: std_logic;
@@ -252,6 +256,7 @@ begin
         end if;
                 
         if h_count = H_FRONT_PORCH then
+		    vga_active_disp_h <= '0';
           vga_hsync <= '0';
         elsif h_count = H_HORIZ_SYNC then
           vga_hsync <= '1';
@@ -261,11 +266,13 @@ begin
 			 end if;
           vga_hborder <= '1';
         elsif h_count = H_LEFT_BORDER then
+		    vga_active_disp_h <= '1';
 		    if overscan = '0' then
             vga_hblank <= '0';
 			 end if;
           active_h_count := (others => '0');
-        elsif h_count = H_VIDEO then
+        elsif h_count = H_VIDEO+1 then
+		    vga_active_disp_h <= '0';
 		    if overscan = '0' then
             vga_hblank <= '1';
 			 end if;
@@ -339,16 +346,19 @@ begin
           cvbs_vsync <= '1';
         elsif v_count = V2_BACK_PORCH then
           cvbs_vborder <= '1';
+          cvbs_active_disp_v <= '0';
 		    if overscan = '1' then
             cvbs_vblank <= '0';
 			 end if;
         elsif v_count = V2_TOP_BORDER then
+          cvbs_active_disp_v <= '1';
 		    if overscan = '0' then
             cvbs_vblank <= '0';
 			 end if;
           row_v := (others => '0');
           active_v_count := (others => '0');        -- debug only
         elsif v_count = V2_VIDEO then
+          cvbs_active_disp_v <= '0';
 		    if overscan = '0' then
             cvbs_vblank <= '1';
 			 end if;
@@ -375,16 +385,19 @@ begin
         elsif h_count = H_HORIZ_SYNC then
           cvbs_hsync <= '1';
         elsif h_count = H_BACK_PORCH then
+		    cvbs_active_disp_h <= '0';
   		    if overscan = '1' then
             cvbs_hblank <= '0';
 			 end if;
         elsif h_count = H_LEFT_BORDER then
+		    cvbs_active_disp_h <= '1';
   		    if overscan = '0' then
             cvbs_hblank <= '0';
 			 end if;
           active_h_count := (others => '0');
           active_h_start <= '1';
-        elsif h_count = H_VIDEO then
+        elsif h_count = H_VIDEO+1 then
+		    cvbs_active_disp_h <= '0';
   		    if overscan = '0' then
             cvbs_hblank <= '1';
 			 end if;
@@ -403,11 +416,14 @@ begin
       char_a <= '0' & dd(5 downto 0) & row_v(3 downto 0);
      
 			-- DA0 high during FS
-			if cvbs_vblank = '1' then
+			--if cvbs_vblank = '1' then
+			if cvbs_active_disp_v = '0' then
 				da0_int <= (others => '1');
-			elsif cvbs_hblank = '1' then
+			--elsif cvbs_hblank = '1' then
+			elsif cvbs_active_disp_h = '0' then
         da0_int <= (others => '0');
-      elsif cvbs_hblank_r = '1' and cvbs_hblank = '0' then
+      --elsif cvbs_hblank_r = '1' and cvbs_hblank = '0' then
+		elsif active_h_start = '1' then
 				da0_int <= "01000";
       else
         da0_int <= da0_int + 1;
@@ -610,7 +626,8 @@ begin
 		      count := '0';
             p_in := (others => '0');
 			end if;
-          if cvbs_hblank = '0' and cvbs_vblank = '0' then				
+          -- if cvbs_hblank = '0' and cvbs_vblank = '0' then				
+          if cvbs_active_disp_h = '1' and cvbs_active_disp_v = '1' then				
             --map_palette (vga_data, r, g, b);
 				--map_palette(pixel_data,r,g,b);
 				
@@ -660,7 +677,8 @@ begin
             count := '0';
             p_in := (others => '0');
           end if;
-          if vga_hblank = '0' and vga_vblank = '0' then
+          --if vga_hblank = '0' and vga_vblank = '0' then
+          if vga_active_disp_h = '1' and cvbs_active_disp_v = '1' then
             -- artifacting test only --
             if artifact_enable = '1' and an_g_s = '1' and gm_s = "111" then
               if count /= '0' then

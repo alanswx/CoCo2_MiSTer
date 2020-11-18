@@ -306,7 +306,7 @@ po8 po8(
   .ioctl_wr(ioctl_wr),
   .artifact_phase(status[2]),
   .artifact_enable(~status[3]),
-  .overscan(~status[4]),
+  .overscan(status[4]),
 //  .count_offset(status[8:5]),
   .joy1(coco_joy1),
   .joy2(coco_joy2),
