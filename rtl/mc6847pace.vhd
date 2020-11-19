@@ -627,6 +627,7 @@ begin
 		  if cvbs_hblank = '1' then
 		      count := '0';
             p_in := (others => '0');
+            p_out(3 downto 0) := (others => '0');
 			end if;
           -- if cvbs_hblank = '0' and cvbs_vblank = '0' then				
           if cvbs_active_disp_h = '1' and cvbs_active_disp_v = '1' then				
@@ -678,7 +679,7 @@ begin
           if vga_hblank = '1' then
             count := '0';
             p_in := (others => '0');
-            pixel_data <= (others => '0');
+            p_out(3 downto 0) := (others => '0');
           end if;
           --if vga_hblank = '0' and vga_vblank = '0' then
           if vga_active_disp_h = '1' and cvbs_active_disp_v = '1' then
