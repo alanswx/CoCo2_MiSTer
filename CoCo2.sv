@@ -319,7 +319,7 @@ po8 po8(
   .sndout(sndout),
   
   .v_count(VCount),
-  .vga_h_count(HCount),
+  .h_count(HCount),
   .DLine1(DLine1),
   .DLine2(DLine2)
 

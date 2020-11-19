@@ -53,6 +53,9 @@ entity mc6847pace  is
     
     -- CVBS output
     cvbs      : out std_logic_vector(7 downto 0);
+	 
+	 o_h_count   : out std_logic_vector(8 downto 0);
+	 o_v_count   : out std_logic_vector(8 downto 0);
 	 pixel_clock : out std_logic
 	);
 end mc6847pace;
@@ -443,6 +446,10 @@ begin
 
       cvbs_hblank_r := cvbs_hblank;
 
+		o_v_count<=v_count;
+		o_h_count<=std_logic_vector(to_unsigned(h_count,o_h_count'length));
+		
+		
     end if; -- cvbs_clk_ena
   end process;
 

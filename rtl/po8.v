@@ -38,7 +38,7 @@ module po8(
   output [5:0] sound,
   output sndout,
   output [8:0] v_count,
-  output [8:0] vga_h_count,
+  output [8:0] h_count,
 output [159:0] DLine1,
 output [159:0] DLine2
 
@@ -551,6 +551,11 @@ mc6847pace vdg(
   .artifact_phase(artifact_phase),
   .overscan(overscan),
 //  .count_offset(count_offset),
+
+  .o_v_count(v_count),
+  .o_h_count(h_count),
+
+
   .pixel_clock(vclk),
   .cvbs()
 );
