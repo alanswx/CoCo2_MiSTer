@@ -196,7 +196,7 @@ rom_bas romA(
 // there must be another solution
 reg cart_loaded;
 always @(posedge clk)
-  if (ioctl_download & ~ioctl_wr)
+  if (load_cart & ioctl_download & ~ioctl_wr)
     cart_loaded <= ioctl_addr > 15'h100;
 
 wire load_cart = ioctl_index == 1;
@@ -423,7 +423,7 @@ pia6520 pia1(
   .strobe(pia1_cs),
   .we(we),
   .irq(firq),
-  .porta_in({5'd0,casdout,1'd0}),
+  .porta_in({6'd0,casdout}),
   .porta_out({dac_data,casdin0,rsout1}),
   .portb_in(),
   .portb_out(pia1_portb_out),

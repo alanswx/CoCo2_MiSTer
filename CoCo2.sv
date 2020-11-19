@@ -160,7 +160,7 @@ assign AUDIO_S = 0;
 assign AUDIO_L = AUDIO_R;
 assign AUDIO_R = sound_pad;
 wire sndout;
-wire [15:0] sound_pad =  {sndout,sound,1'b0,8'b0};
+wire [15:0] sound_pad =  {sndout,sound,casdout,8'b0};
 assign AUDIO_MIX = 0;
 
 assign LED_DISK = 0;
@@ -254,7 +254,7 @@ pll pll
 	.locked(locked)
 );
 
-wire reset = RESET | status[0] | buttons[1] | ioctl_download;
+wire reset = RESET | status[0] | buttons[1] | (ioctl_download & ioctl_index == 1);
 
 //////////////////////////////////////////////////////////////////
 
@@ -345,7 +345,7 @@ sdram sdram
 	.addr(ioctl_download ? ioctl_addr : sdram_addr),
 	.wtbt(0),
 	.dout(sdram_data),
-	.din(ioctl_dout),
+	.din(ioctl_data),
 	.rd(sdram_rd),
 	.we(ioctl_wr & load_tape),
 	.ready()
