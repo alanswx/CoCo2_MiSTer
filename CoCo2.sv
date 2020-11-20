@@ -358,7 +358,8 @@ sdram sdram
 );
 
 cassette cassette(
-  .clk(clk_Q_out),
+  .clk(clk_sys),
+  .Q(clk_Q_out),
   .play(status[14]),
   .rewind(status[15]),
   .en(cas_relay),
