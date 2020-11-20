@@ -29,6 +29,7 @@ module po8(
   input ioctl_wr,
   input ioctl_index,
   input casdout,
+  output cas_relay,
   input artifact_phase,
   input artifact_enable,
   input overscan,
@@ -42,13 +43,16 @@ module po8(
   output [8:0] v_count,
   output [8:0] vga_h_count,
 output [159:0] DLine1,
-output [159:0] DLine2
+output [159:0] DLine2,
+output clk_Q_out
 
   //reg [159:0] DLine1,DLine2;
 
 
 
 );
+
+assign clk_Q_out = Q;
 
 wire nmi = 1'b1;
 wire halt = 1'b1;
@@ -431,7 +435,7 @@ pia6520 pia1(
   .ca2_in(),
   .cb1_in(cart_loaded & reset & Q), // cartridge inserted
   .cb2_in(),
-  .ca2_out(),
+  .ca2_out(cas_relay),
   .cb2_out(snden),
   .clk(clk),
   .clk_ena(clk_14M318_ena),
