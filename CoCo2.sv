@@ -431,7 +431,7 @@ ovo OVERLAY
     .i_r(4'd0),
     .i_g(4'd0),
     .i_b(4'd0),
-    .i_clk(ce_pix),
+    .i_clk(clk_sys),
 
 	 .i_Hcount(HCount),
 	 .i_VCount(VCount),
