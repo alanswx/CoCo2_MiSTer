@@ -29,6 +29,7 @@ module po8(
   input ioctl_wr,
   input ioctl_index,
   input casdout,
+  output cas_relay,
   input artifact_phase,
   input artifact_enable,
   input overscan,
@@ -434,7 +435,7 @@ pia6520 pia1(
   .ca2_in(),
   .cb1_in(cart_loaded & reset & Q), // cartridge inserted
   .cb2_in(),
-  .ca2_out(),
+  .ca2_out(cas_relay),
   .cb2_out(snden),
   .clk(clk),
   .clk_ena(clk_14M318_ena),

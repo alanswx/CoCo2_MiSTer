@@ -284,6 +284,9 @@ wire [31:0] coco_joy2 = status[10] ? joy1 : joy2;
 wire [15:0] coco_ajoy1 = status[10] ? {center_joystick_x2[7:0],center_joystick_y2[7:0]} : {center_joystick_x1[7:0],center_joystick_y1[7:0]};
 wire [15:0] coco_ajoy2 = status[10] ? {center_joystick_x1[7:0],center_joystick_y1[7:0]} : {center_joystick_x2[7:0],center_joystick_y2[7:0]};
 
+wire casdout;
+wire cas_relay;
+
 po8 po8(
   .clk(clk_sys), // 50 mhz
   .reset(~reset),
@@ -310,6 +313,7 @@ po8 po8(
   .ioctl_index(ioctl_index),
   .ioctl_wr(ioctl_wr),
   .casdout(casdout),
+  .cas_relay(cas_relay),
   .artifact_phase(status[2]),
   .artifact_enable(~status[3]),
   .overscan(status[4]),
@@ -357,6 +361,7 @@ cassette cassette(
   .clk(clk_Q_out),
   .play(status[14]),
   .rewind(status[15]),
+  .en(cas_relay),
 
   .sdram_addr(sdram_addr),
   .sdram_data(sdram_data),
