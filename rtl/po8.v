@@ -42,13 +42,16 @@ module po8(
   output [8:0] v_count,
   output [8:0] vga_h_count,
 output [159:0] DLine1,
-output [159:0] DLine2
+output [159:0] DLine2,
+output clk_Q_out
 
   //reg [159:0] DLine1,DLine2;
 
 
 
 );
+
+assign clk_Q_out = Q;
 
 wire nmi = 1'b1;
 wire halt = 1'b1;

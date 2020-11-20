@@ -26,11 +26,6 @@ reg sq_start;
 reg [1:0] eof;
 wire done;
 
-reg [1:0] clk_cnt;
-wire clk14 = clk_cnt[1];
-always @(posedge clk)
-  clk_cnt <= clk_cnt + 2'd1;
-
 parameter
   IDLE      = 3'h0,
   START     = 3'h1,
@@ -41,7 +36,7 @@ parameter
   READ4     = 3'h6;
 
 
-always @(posedge clk14) begin
+always @(posedge clk) begin
 
   ffplay <= play;
   ffrewind <= rewind;

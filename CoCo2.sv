@@ -327,7 +327,9 @@ po8 po8(
   .v_count(VCount),
   .vga_h_count(HCount),
   .DLine1(DLine1),
-  .DLine2(DLine2)
+  .DLine2(DLine2),
+
+  .clk_Q_out(clk_Q_out)
 
 );
 
@@ -352,7 +354,7 @@ sdram sdram
 );
 
 cassette cassette(
-  .clk(clk_sys),
+  .clk(clk_Q_out),
   .play(status[14]),
   .rewind(status[15]),
 

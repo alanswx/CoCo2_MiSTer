@@ -7,8 +7,7 @@ module square_gen(
   output dout
 );
 
-// 57.272/0.0024=23863 (2^24/23863)*2
-parameter STP = 24'd1406;
+parameter STP = 24'd90687;
 
 reg [23:0] div;
 reg [2:0] nbit;
