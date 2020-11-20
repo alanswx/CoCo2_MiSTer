@@ -160,7 +160,7 @@ assign AUDIO_S = 0;
 assign AUDIO_L = AUDIO_R;
 assign AUDIO_R = sound_pad;
 wire sndout;
-wire [15:0] sound_pad =  {sndout,sound,1'b0,8'b0};
+wire [15:0] sound_pad =  {sndout,sound,casdout,8'b0};
 assign AUDIO_MIX = 0;
 
 assign LED_DISK = 0;
@@ -187,6 +187,9 @@ localparam CONF_STR = {
 	"OB,Debug display,Off,On;",
 	"-;",
 	"F1,CCC,Load Cartridge;",
+	"F2,CAS,Load Cassette;",
+	"TE,Tape Play/Pause;",
+	"TF,Tape Rewind;",
 	"-;",
 	"R0,Reset;",
 	"J1,Button;",
@@ -228,7 +231,7 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 	.ioctl_addr(ioctl_addr),
 	.ioctl_dout(ioctl_data),
 	.ioctl_index(ioctl_index),
-	
+
 	.joystick_0(joy1),
    .joystick_1(joy2),
 
@@ -247,10 +250,11 @@ pll pll
 (
 	.refclk(CLK_50M),
 	.rst(0),
-	.outclk_0(clk_sys)
+	.outclk_0(clk_sys),
+	.locked(locked)
 );
 
-wire reset = RESET | status[0] | buttons[1] | ioctl_download;
+wire reset = RESET | status[0] | buttons[1] | (ioctl_download & ioctl_index == 1);
 
 //////////////////////////////////////////////////////////////////
 
@@ -280,14 +284,17 @@ wire [31:0] coco_joy2 = status[10] ? joy1 : joy2;
 wire [15:0] coco_ajoy1 = status[10] ? {center_joystick_x2[7:0],center_joystick_y2[7:0]} : {center_joystick_x1[7:0],center_joystick_y1[7:0]};
 wire [15:0] coco_ajoy2 = status[10] ? {center_joystick_x1[7:0],center_joystick_y1[7:0]} : {center_joystick_x2[7:0],center_joystick_y2[7:0]};
 
+wire casdout;
+wire cas_relay;
+
 po8 po8(
   .clk(clk_sys), // 50 mhz
   .reset(~reset),
-  
+
   .red(red),
   .green(green),
   .blue(blue),
-  
+
   .hblank(HBlank),
   .vblank(VBlank),
   .hsync(HSync),
@@ -303,7 +310,10 @@ po8 po8(
   .ioctl_addr(ioctl_addr),
   .ioctl_data(ioctl_data),
   .ioctl_download(ioctl_download),
+  .ioctl_index(ioctl_index),
   .ioctl_wr(ioctl_wr),
+  .casdout(casdout),
+  .cas_relay(cas_relay),
   .artifact_phase(status[2]),
   .artifact_enable(~status[3]),
   .overscan(status[4]),
@@ -313,16 +323,53 @@ po8 po8(
 
   .joya1(coco_ajoy1),
   .joya2(coco_ajoy2),
- 
+
 
   .sound(sound),
   .sndout(sndout),
-  
+
   .v_count(VCount),
   .h_count(HCount),
   .DLine1(DLine1),
-  .DLine2(DLine2)
+  .DLine2(DLine2),
 
+  .clk_Q_out(clk_Q_out)
+
+);
+
+wire locked;
+wire [24:0] sdram_addr;
+wire [7:0] sdram_data;
+wire sdram_rd;
+wire load_tape = ioctl_index == 2;
+
+sdram sdram
+(
+	.*,
+	.init(~locked),
+	.clk(clk_sys),
+	.addr(ioctl_download ? ioctl_addr : sdram_addr),
+	.wtbt(0),
+	.dout(sdram_data),
+	.din(ioctl_data),
+	.rd(sdram_rd),
+	.we(ioctl_wr & load_tape),
+	.ready()
+);
+
+cassette cassette(
+  .clk(clk_sys),
+  .Q(clk_Q_out),
+  .play(status[14]),
+  .rewind(status[15]),
+  .en(cas_relay),
+
+  .sdram_addr(sdram_addr),
+  .sdram_data(sdram_data),
+  .sdram_rd(sdram_rd),
+
+  .data(casdout)
+//   .status(tape_status)
 );
 
 
@@ -385,7 +432,7 @@ ovo OVERLAY
     .i_g(4'd0),
     .i_b(4'd0),
     .i_clk(ce_pix),
-	 
+
 	 .i_Hcount(HCount),
 	 .i_VCount(VCount),
 

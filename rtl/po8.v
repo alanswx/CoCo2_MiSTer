@@ -27,6 +27,9 @@ module po8(
   input [15:0] ioctl_addr,
   input ioctl_download,
   input ioctl_wr,
+  input ioctl_index,
+  input casdout,
+  output cas_relay,
   input artifact_phase,
   input artifact_enable,
   input overscan,
@@ -40,7 +43,8 @@ module po8(
   output [8:0] v_count,
   output [8:0] h_count,
 output [159:0] DLine1,
-output [159:0] DLine2
+output [159:0] DLine2,
+output clk_Q_out
 
   //reg [159:0] DLine1,DLine2;
 
@@ -48,12 +52,14 @@ output [159:0] DLine2
 
 );
 
+assign clk_Q_out = Q;
+
 wire nmi = 1'b1;
 wire halt = 1'b1;
 
 wire E, Q;
 wire VClk;
-  
+
 reg clk_14M318_ena ;
 reg [1:0] count;
 always @(posedge clk)
@@ -63,7 +69,7 @@ begin
 	else
 	begin
 		clk_14M318_ena <= 0;
-		if (count == 'd3) 
+		if (count == 'd3)
 		begin
 		  clk_14M318_ena <= 1;
         count <= 0;
@@ -83,7 +89,7 @@ always @(posedge clk) begin
 	clk_14M318_ena <= div == 0;
 end
 */
-  
+
 wire [7:0] cpu_dout;
 wire [15:0] cpu_addr;
 wire cpu_rw;
@@ -161,7 +167,7 @@ dpram #(.addr_width_g(16), .data_width_g(8)) ram1(
   .q_a(/*ram_dout*/),
   .wren_a(we),
   .enable_a(ram_cs),
-  .enable_b(1'b1),  
+  .enable_b(1'b1),
 /*  .wren_a(~sam_we_n),
   .enable_a(sam_we_n),
   .enable_b(sam_we_n),
@@ -194,8 +200,10 @@ rom_bas romA(
 // there must be another solution
 reg cart_loaded;
 always @(posedge clk)
-  if (ioctl_download & ~ioctl_wr)
+  if (load_cart & ioctl_download & ~ioctl_wr)
     cart_loaded <= ioctl_addr > 15'h100;
+
+wire load_cart = ioctl_index == 1;
 
 dpram #(.addr_width_g(14), .data_width_g(8)) romC(
   .clock_a(clk),
@@ -206,8 +214,11 @@ dpram #(.addr_width_g(14), .data_width_g(8)) romC(
   .clock_b(clk),
   .address_b(ioctl_addr[13:0]),
   .data_b(ioctl_data),
-  .wren_b(ioctl_wr)
+  .wren_b(ioctl_wr & load_cart)
 );
+
+
+
 
 wire [2:0] S;
 wire [2:0] SS;
@@ -230,14 +241,14 @@ reg cas_n_r;
 reg q_r,e_r;
 always @(posedge clk)
 begin
-	if (~reset) 
+	if (~reset)
 	begin
 		ras_n_r<=0;
 		cas_n_r<=0;
 		q_r<=0;
 		e_r<=0;
 	end
-	else if  (clk_14M318_ena == 1) 
+	else if  (clk_14M318_ena == 1)
 	begin
 	     if (ras_n == 1 && ras_n_r == 0 &&  E ==1)
 		  begin
@@ -248,7 +259,7 @@ begin
           sam_a[7:0]<= ma;
         else if (cas_n == 0 && cas_n_r == 1)
           sam_a[15:8] <= ma;
-			 
+
 		  if (Q == 1 && q_r == 0)
 		  begin
 		   ram_dout_b<=vdg_data;// <= sram_i.d(ram_datao'range);
@@ -256,9 +267,9 @@ begin
         e_r <= E;
         q_r <= Q;
 
-			 
+
         ras_n_r <= ras_n;
-        cas_n_r <= cas_n;		
+        cas_n_r <= cas_n;
 	end
 end
 			assign ram_dout=vdg_data;
@@ -277,10 +288,10 @@ mc6883 sam2(
 			.da0(da0),
 			.hs_n(hs_n),
 			.vclk(),
-			
-			//-- peripheral address selects		
+
+			//-- peripheral address selects
 			.s(SS),
-			
+
 			//-- clock generation
 			.e(E),
 			.q(Q),
@@ -292,7 +303,7 @@ mc6883 sam2(
 			.ras0_n(ras_n),
 			.cas_n(cas_n),
 			.we_n(sam_we_n),
-			
+
 			.dbg()//sam_dbg
 );
 
@@ -416,7 +427,7 @@ pia6520 pia1(
   .strobe(pia1_cs),
   .we(we),
   .irq(firq),
-  .porta_in(),
+  .porta_in({6'd0,casdout}),
   .porta_out({dac_data,casdin0,rsout1}),
   .portb_in(),
   .portb_out(pia1_portb_out),
@@ -424,7 +435,7 @@ pia6520 pia1(
   .ca2_in(),
   .cb1_in(cart_loaded & reset & Q), // cartridge inserted
   .cb2_in(),
-  .ca2_out(),
+  .ca2_out(cas_relay),
   .cb2_out(snden),
   .clk(clk),
   .clk_ena(clk_14M318_ena),
