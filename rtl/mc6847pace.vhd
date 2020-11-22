@@ -610,6 +610,7 @@ begin
   hs_n <= not hs_int;
   fs_n <= not fs_int;
   da0 <= da0_int(4) when (gm_s = "001" or gm_s = "011" or gm_s = "101") else
+         da0_int(4) when (an_g_s = '1' and gm_s = "000") else
          da0_int(3);
 		
 	-- map the palette to the pixel data
