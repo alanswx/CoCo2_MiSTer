@@ -484,18 +484,18 @@ assign blue = { b4, b4};
 
 assign DLine1 = {
 
-5'b10000,
-5'b11111,
+5'b10000,						// space
+5'b11111,						// '#'  (to mark the data)
 1'b0,pia1_portb_out[7:4],
-5'b10000,
+5'b10000,						// space
 
-5'b10101,
+5'b10101,						// '>'  (to mark the data)
 1'b0,pia1_portb_out[3:0],
-5'b10000,
+5'b10000,						// space
 
-5'b11010,
+5'b11010,						// ':'  (to mark the data)
 3'b0,ram_dout_b[7:6],
-5'b10000,
+5'b10000,						// space
 
 110'b0};
 /*
