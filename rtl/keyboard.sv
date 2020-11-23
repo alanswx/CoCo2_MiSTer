@@ -263,7 +263,7 @@ always @(posedge clk_sys) begin
 
 
 			8'h12 : begin
-						keys[6][6] <= ~press_btn; // Left shift
+						keys[6][7] <= ~press_btn; // Left shift
 						shiftstate <= press_btn;
 					end
 
@@ -312,6 +312,7 @@ always @(posedge clk_sys) begin
 			8'h1e :															// 2
 					if ((kblayout == 1) && (shiftstate == 1)) begin
 						keys[0][0] <= ~press_btn;						// PC '@" -> @ (TRS)
+						keys[6][7] <= press_btn;
 					end
 					else begin
 						keys[4][2] <= ~press_btn;						// 2
@@ -362,7 +363,7 @@ always @(posedge clk_sys) begin
 			8'h4c :															// ;:
 					if ((kblayout == 1) && (shiftstate == 1)) begin
 						keys[5][2] <= ~press_btn;						// ':' (not shifted)  (TRS)
-						keys[6][7] <= ~press_btn;
+						keys[6][7] <= press_btn;
 					end
 					else begin
 						keys[5][3] <= ~press_btn;						// - (minus)
