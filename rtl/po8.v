@@ -4,60 +4,71 @@
 module po8(
   input clk, // 57.272 mhz
   input reset, // todo: reset doesn't work!
-/*  output [4:0] red,
-  output [5:0] green,
-  output [4:0] blue,
-  */
+
+  // video signals
   output [7:0] red,
   output [7:0] green,
   output [7:0] blue,
+
   output hblank,
   output vblank,
   output hsync,
   output vsync,
+  
+  // clocks output
   output vclk,
-  // input ps2_clk,
-  // input ps2_dat,
-  input uart_din,
-  output debug_led,
-  output reg [6:0] segments,
-  output reg [5:0] digits,
+  output clk_Q_out,
+
+  // video options
+  input artifact_phase,
+  input artifact_enable,
+  input overscan,
+
+
+  input uart_din,  // not connected yet
+
+  // keyboard
   input [10:0] ps2_key,
+
+  // joystick input
+  // digital for buttons
+  input [15:0] joy1,  
+  input [15:0] joy2,
+  // analog for position
+  input [15:0] joya1,
+  input [15:0] joya2,
+
+  
+  // roms, cartridges, etc
   input [7:0] ioctl_data,
   input [15:0] ioctl_addr,
   input ioctl_download,
   input ioctl_wr,
   input ioctl_index,
+
+
+  // cassette signals
   input casdout,
   output cas_relay,
-  input artifact_phase,
-  input artifact_enable,
-  input overscan,
-//  input [3:0] count_offset,
-  input [15:0] joy1,
-  input [15:0] joy2,
-  input [15:0] joya1,
-  input [15:0] joya2,
+  
+  // sound
   output [5:0] sound,
   output sndout,
+  
+  // debug for video overlay
   output [8:0] v_count,
   output [8:0] h_count,
-output [159:0] DLine1,
-output [159:0] DLine2,
-output clk_Q_out
-
-  //reg [159:0] DLine1,DLine2;
-
-
+  output [159:0] DLine1,
+  output [159:0] DLine2
 
 );
 
-assign clk_Q_out = Q;
+assign clk_Q_out = clk_Q;
 
 wire nmi = 1'b1;
 wire halt = 1'b1;
 
-wire E, Q;
+wire clk_E, clk_Q;
 wire VClk;
 
 reg clk_14M318_ena ;
@@ -80,15 +91,7 @@ begin
 		end
 	end
 end
-/*
-reg clk_14M318_ena;
-always @(posedge clk) begin
-        reg [1:0] div;
 
-        div <= div + 1'd1;
-	clk_14M318_ena <= div == 0;
-end
-*/
 
 wire [7:0] cpu_dout;
 wire [15:0] cpu_addr;
@@ -101,12 +104,11 @@ wire cpu_last_inst_cycle;
 wire irq;
 wire firq;
 
-wire [12:0] vdg_addr;
-wire [10:0] vdg_char_addr;
-wire [7:0] chr_dout;
 
-// this should be managed by SAM
-wire [14:0] vmem = { disp_offset, 9'd0 } + vdg_addr;
+
+wire ram_cs,rom8_cs,romA_cs,romC_cs,io_cs,pia1_cs,pia_cs;
+
+
 wire [7:0]vdg_data;
 wire [7:0] ram_dout;
 reg [7:0] ram_dout_b;
@@ -117,13 +119,8 @@ wire [7:0] pia_dout;
 wire [7:0] pia1_dout;
 wire [7:0] io_out;
 
-wire we = ~cpu_rw & E;
+wire we = ~cpu_rw & clk_E;
 
-wire [8:0] char_rom_addr;
-assign char_rom_addr[8:3] = vdg_char_addr[9:4];
-assign char_rom_addr[2:0] = temp_vdg_char_addr[2:0];
-wire [3:0] temp_vdg_char_addr = vdg_char_addr[3:0] - 2'b11;
-wire [7:0] char_data = (vdg_char_addr[3:0] < 3 || vdg_char_addr[3:0] > 10) ? 8'h00 : chr_dout;
 
 wire [7:0] keyboard_data;
 wire [7:0] kb_cols, kb_rows;
@@ -140,14 +137,14 @@ wire [7:0] cpu_din =
   pia1_cs ? pia1_dout :
   io_cs   ? io_out : 8'hff;
 
-mc6809e cpu(
+mc6809i cpu(
   .clk(clk),
   .D(cpu_din),
   .DOut(cpu_dout),
   .ADDR(cpu_addr),
   .RnW(cpu_rw),
-  .E(E),
-  .Q(Q),
+  .E(clk_E),
+  .Q(clk_Q),
   .BS(cpu_bs),
   .BA(cpu_ba),
   .nIRQ(~irq),
@@ -157,7 +154,8 @@ mc6809e cpu(
   .BUSY(cpu_busy),
   .LIC(cpu_last_inst_cycle),
   .nHALT(halt),
-  .nRESET(reset)
+  .nRESET(reset),
+  .nDMABREQ(1)
 );
 
 dpram #(.addr_width_g(16), .data_width_g(8)) ram1(
@@ -220,11 +218,9 @@ dpram #(.addr_width_g(14), .data_width_g(8)) romC(
 
 
 
-wire [2:0] S;
-wire [2:0] SS;
+wire [2:0] s_device_select;
 wire [15:0] sam_addr;
 reg [15:0] mem_addr;
-wire [6:0] disp_offset;
 
 
 
@@ -233,12 +229,12 @@ wire [6:0] disp_offset;
 
 
 wire da0;
-wire [7:0] ma;
+wire [7:0] ma_ram_addr;
 wire ras_n, cas_n,sam_we_n;
 reg [15:0] sam_a;
 reg ras_n_r;
 reg cas_n_r;
-reg q_r,e_r;
+reg q_r;
 always @(posedge clk)
 begin
 	if (~reset)
@@ -246,26 +242,24 @@ begin
 		ras_n_r<=0;
 		cas_n_r<=0;
 		q_r<=0;
-		e_r<=0;
 	end
 	else if  (clk_14M318_ena == 1)
 	begin
-	     if (ras_n == 1 && ras_n_r == 0 &&  E ==1)
+	     if (ras_n == 1 && ras_n_r == 0 &&  clk_E ==1)
 		  begin
 		    //  ram_datao <= sram_i.d(ram_datao'range);
 			// ram_dout<=vdg_data;
         end
         if (ras_n == 0 && ras_n_r == 1)
-          sam_a[7:0]<= ma;
+          sam_a[7:0]<= ma_ram_addr;
         else if (cas_n == 0 && cas_n_r == 1)
-          sam_a[15:8] <= ma;
+          sam_a[15:8] <= ma_ram_addr;
 
-		  if (Q == 1 && q_r == 0)
+		  if (clk_Q == 1 && q_r == 0)
 		  begin
 		   ram_dout_b<=vdg_data;// <= sram_i.d(ram_datao'range);
         end
-        e_r <= E;
-        q_r <= Q;
+        q_r <= clk_Q;
 
 
         ras_n_r <= ras_n;
@@ -275,14 +269,14 @@ end
 			assign ram_dout=vdg_data;
 
 
-mc6883 sam2(
-			.clk(clk),//				=> clk_57M272,
+mc6883 sam(
+			.clk(clk),
 			.clk_ena(clk_14M318_ena),
-			.reset(~reset),//			=> platform_rst,
+			.reset(~reset),
 
 			//-- input
-			.a(cpu_addr),//					=> cpu_a,
-			.rw_n(cpu_rw),//		=> cpu_r_wn,
+			.addr(cpu_addr),
+			.rw_n(cpu_rw),
 
 			//-- vdg signals
 			.da0(da0),
@@ -290,14 +284,14 @@ mc6883 sam2(
 			.vclk(),
 
 			//-- peripheral address selects
-			.s(SS),
+			.s_device_select(s_device_select),
 
 			//-- clock generation
-			.e(E),
-			.q(Q),
+			.clk_e(clk_E),
+			.clk_q(clk_Q),
 
 			//-- dynamic addresses
-			.z(ma),
+			.z_ram_addr(ma_ram_addr),
 
 			//-- ram
 			.ras0_n(ras_n),
@@ -308,32 +302,18 @@ mc6883 sam2(
 );
 
 
-
+wire nc;
 wire [7:0] cs74138;
-wire [7:0] cs74138a;
 assign {
-  io_cs, pia1_cs, pia_cs,
+  nc,io_cs, pia1_cs, pia_cs,
   romC_cs, romA_cs, rom8_cs,
   ram_cs
 } = cs74138;
-/*
-assign {
-  io_cs, pia1_cs, pia_cs,
-  romC_cs, romA_cs, rom8_cs,
-  ram_cs
-} = ~cs74138;
-
-x74138 x74138(
-  .En(3'b100),
-  .I(S),
-  .O(cs74138)
-);
-*/
 
 ttl_74ls138_p u11(
-.a(SS[0]),
-.b(SS[1]),
-.c(SS[2]),
+.a(s_device_select[0]),
+.b(s_device_select[1]),
+.c(s_device_select[2]),
 .g1(1),//comes from CART_SLENB#
 .g2a(1),//come from E NOR cs_sel(2)
 .g2b(1),
@@ -342,20 +322,6 @@ ttl_74ls138_p u11(
 .y(cs74138)
 );
 
-//
-// Not sure why the SS from the new SAM doesn't work correctly
-//
-/*
-ttl_74ls138_p u11a(
-.a(SS[0]),
-.b(SS[1]),
-.c(SS[2]),
-.g1(1),//comes from CART_SLENB#
-.g2a( ~(cpu_rw | SS[2])),
-.g2b(~(E| SS[2])),//come from E NOR cs_sel(2)
-.y(cs74138a)
-);
-*/
 
 
 wire fs_n;
@@ -382,36 +348,8 @@ pia6520 pia(
   .clk_ena(clk_14M318_ena),
   .reset(~reset)
 );
-/*
-assign irq = irqa | irqb;
-wire irqa,irqb;
 
-pia6821 pia(
-	.clk(clk_14M318_ena),
-	.rst(~reset),
-	.cs(pia_cs),
-	.rw(~we),
-	.addr(cpu_addr[1:0]),
-	.data_in(cpu_dout),
-	.data_out(pia_dout),
-	.irqa(irqa),
-	.irqb(irqb),
-	.pa_i(kb_rows),
-	.pa_o(),
-	.pa_oe(),
-	.ca1(hs_n),
-	.ca2_i(),
-	.ca2_o(sela),
-	.ca2_oe(),
-	.pb_i(),
-	.pb_o(kb_cols),
-	.pb_oe(),
-	.cb1(fs_n),
-	.cb2_i(),
-	.cb2_o(selb),
-	.cb2_oe()
-);
-*/
+
 wire casdin0;
 wire rsout1;
 wire [5:0] dac_data;
@@ -433,7 +371,7 @@ pia6520 pia1(
   .portb_out(pia1_portb_out),
   .ca1_in(),
   .ca2_in(),
-  .cb1_in(cart_loaded & reset & Q), // cartridge inserted
+  .cb1_in(cart_loaded & reset & clk_Q), // cartridge inserted
   .cb2_in(),
   .ca2_out(cas_relay),
   .cb2_out(snden),
@@ -441,45 +379,9 @@ pia6520 pia1(
   .clk_ena(clk_14M318_ena),
   .reset(~reset)
 );
-/*
-assign firq = irq1a | irq1b;
-wire irq1a,irq1b;
-pia6821 pia1(
-	.clk(clk_14M318_ena),
-	.rst(~reset),
-	.cs(pia1_cs),
-	.rw(~we),
-	.addr(cpu_addr[1:0]),
-	.data_in(cpu_dout),
-	.data_out(pia1_dout),
-	.irqa(irq1a),
-	.irqb(irq1b),
-	.pa_i(),
-	.pa_o({dac_data,casdin0,rsout1}),
-	.pa_oe(),
-	.ca1(hs_n),
-	.ca2_i(),
-	.ca2_o(cassmot),
-	.ca2_oe(),
-	.pb_i(),
-	.pb_o(pia1_portb_out),
-	.pb_oe(),
-	.cb1(cart_loaded & reset & Q),
-	.cb2_i(),
-	.cb2_o(snden),
-	.cb2_oe()
-);
-*/
 
 
-/*
-wire [3:0] r4, g4, b4;
-assign red = { r4,r4 };
-assign green = { g4, g4};
-assign blue = { b4, b4};
-*/
 
-//reg [159:0] DLine1,DLine2;
 
 
 assign DLine1 = {
@@ -498,43 +400,7 @@ assign DLine1 = {
 5'b10000,						// space
 
 110'b0};
-/*
-mc6847v vdg(
-  .clk(clk),
-  .clk_ena(clk_14M318_ena),
-  .reset(~reset),
-  .da0(da0),
-  .videoaddr(vdg_addr),
-  .dd(ram_dout_b),
-  .hs_n(hs_n),
-  .fs_n(fs_n),
-  .an_g(pia1_portb_out[7]), // PIA1 port B
-  .an_s(ram_dout_b[7]),
-  .intn_ext(pia1_portb_out[4]),
-  .gm(pia1_portb_out[6:4]), // [2:0] pin 6 (gm2),5 (gm1) & 4 (gm0) PIA1 port B
-  .css(pia1_portb_out[3]),
-  .inv(ram_dout_b[6]),
-  .red(red),
-  .green(green),
-  .blue(blue),
-  .hsync(hsync),
-  .vsync(vsync),
-  .hblank(hblank),
-  .vblank(vblank),
-  .artifact_en(1'b1),
-  .artifact_set(1'b0),
-  .artifact_phase(artifact_phase),
-  .cvbs(),
-  .black_backgnd(1'b1),
-  .char_a(vdg_char_addr), // => char rom address
-  .char_d_o(char_data), // <= char rom data
-  .v_count(v_count),
-  .vga_h_count(vga_h_count),
-  .pixel_clock(vclk)
 
-
-);
-*/
 
 mc6847pace vdg(
   .clk(clk),
@@ -561,7 +427,6 @@ mc6847pace vdg(
   .artifact_set(1'b0),
   .artifact_phase(artifact_phase),
   .overscan(overscan),
-//  .count_offset(count_offset),
 
   .o_v_count(v_count),
   .o_h_count(h_count),
@@ -573,11 +438,9 @@ mc6847pace vdg(
 
 
 
-rom_chrrom chrrom(
-  .clk(clk),
-  .addr(char_rom_addr),
-  .dout(chr_dout)
-);
+// hilo comes from the dac as the comparator 
+// of whether the joystick value is higher or lower than the amount being probed
+// we need to pass it through the keyboard matrix so it flows into here
 wire hilo;
 keyboard kb(
 .clk_sys(clk),
@@ -594,6 +457,10 @@ keyboard kb(
 
 );
 
+
+// the DAC isn't really a DAC but represents the DAC chip on the schematic. 
+// All the signals have been digitized before it gets here.
+
 dac dac(
 .clk(clk),
 .joya1(joya1),
@@ -609,6 +476,5 @@ dac dac(
 );
 
 
-assign debug_led = kb_rows != 8'hff;
 
 endmodule

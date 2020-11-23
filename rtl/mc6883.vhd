@@ -11,7 +11,7 @@ entity mc6883 is
 		reset			: in std_logic;
 		
 		-- input
-		a				: in std_logic_vector(15 downto 0);
+		addr			: in std_logic_vector(15 downto 0);
 		rw_n			: in std_logic;
 
 		-- vdg signals
@@ -20,14 +20,14 @@ entity mc6883 is
 		vclk			: out std_logic;
 		
 		-- peripheral address selects		
-		s				: out std_logic_vector(2 downto 0);
+		s_device_select				: out std_logic_vector(2 downto 0);
 		
 		-- clock generation
-		e				: out std_logic;
-		q				: out std_logic;
+		clk_e			: out std_logic;
+		clk_q			: out std_logic;
 
 		-- dynamic addresses
-		z				: out std_logic_vector(7 downto 0);
+		z_ram_addr	: out std_logic_vector(7 downto 0);
 
 		-- ram
 		ras0_n 		: out std_logic;
@@ -77,7 +77,7 @@ architecture SYN of mc6883 is
 	alias f_vdg_addr_offset : std_logic_vector(6 downto 0) 	is cr(9 downto 3);
 	alias v_vdg_addr_modes 	: std_logic_vector(2 downto 0) 	is cr(2 downto 0);
 	
-	alias flag			: std_logic 										is a(0);
+	alias flag			: std_logic 										is addr(0);
 
 	-- internal chipselect vectors
 	signal s_ty0		: std_logic_vector(2 downto 0);
@@ -103,9 +103,9 @@ begin
     if reset = '1' then
       --count := (others => '0');
       count := "0000";
-      z <= (others => '0');
-      q <= '0';
-      e <= '0';
+      z_ram_addr <= (others => '0');
+      clk_q <= '0';
+      clk_e <= '0';
       ras0_n <= '1';
       cas_n <= '1';
       we_n_s <= '1';
@@ -120,34 +120,34 @@ begin
         case count is
           when "0000" =>
             -- valid VDG address (row)
-            -- z(7) is RAS1# or B(7)
-            z <= b_int(7 downto 0);
+            -- z_ram_addr(7) is RAS1# or B(7)
+            z_ram_addr <= b_int(7 downto 0);
             ras0_n <= '0';
           when "0001" =>
           when "0010" =>
             -- valid VDG address (col)
             --case m is
             --  when "00" =>
-            --    z <= "00" & b_int(11 downto 6);
+            --    z_ram_addr <= "00" & b_int(11 downto 6);
             --  when "01" =>
-            --    z <= '0' & b_int(13 downto 7);
+            --    z_ram_addr <= '0' & b_int(13 downto 7);
             --  when others =>
-                z <= b_int(15 downto 8);
+                z_ram_addr <= b_int(15 downto 8);
             --end case;
             cas_n <= '0';
           when "0011" =>
-            q <= '1';
+            clk_q <= '1';
           when "0100" =>
           when "0101" =>
             ras0_n <= '1';
           when "0110" =>
           when "0111" =>
             cas_n <= '1';
-            e <= '1';
+            clk_e <= '1';
           when "1000" =>
             -- valid MPU address (row)
-            -- z(7) is RAS1# or A(7)
-            z <= a(7 downto 0);
+            -- z_ram_addr(7) is RAS1# or A(7)
+            z_ram_addr <= addr(7 downto 0);
             ras0_n <= '0';
           when "1001" =>
           when "1010" =>
@@ -155,20 +155,20 @@ begin
             -- no need to munge any signal with RAS/CAS
             --case m is
             --  when "00" =>
-            --    z <= "00" & a(11 downto 6);
+            --    z_ram_addr <= "00" & addr(11 downto 6);
             --  when "01" =>
-                -- z(7) is P or don't care
-            --    z <= p & a(13 downto 7);
+                -- z_ram_addr(7) is P or don't care
+            --    z_ram_addr <= p & addr(13 downto 7);
             --  when others =>
             --    if ty_memory_map_type = '0' then
-            --      z <= p & a(14 downto 8);
+            --      z_ram_addr <= p & addr(14 downto 8);
             --    else
-                  z <= a(15 downto 8);
+                  z_ram_addr <= addr(15 downto 8);
             --    end if;
             --end case;
             cas_n <= '0';
           when "1011" =>
-            q <= '0';
+            clk_q <= '0';
           when "1100" =>
           when "1101" =>
             ras0_n <= '1';
@@ -179,7 +179,7 @@ begin
           when "1110" =>
           when "1111" =>
             cas_n <= '1';
-            e <= '0';
+            clk_e <= '0';
           when others =>
             null;
         end case;
@@ -269,7 +269,7 @@ begin
   end process;
 
 	-- select control register (CR)
-	sel_cr <= '1' when a(15 downto 5) = "11111111110" else '0';
+	sel_cr <= '1' when addr(15 downto 5) = "11111111110" else '0';
 	
 	--
 	--	Memory decode logic
@@ -277,44 +277,44 @@ begin
 	--
 	s_ty0 <= 	"010" when 	-- $FFF2-$FFFF (6809 vectors)
 												-- $FFE0-$FFF1 (reserved)
-												a(15 downto 5) = "11111111111"
+												addr(15 downto 5) = "11111111111"
 									else
 						"111" when	-- $FFC0-$FFDF (SAM control register)
 												-- $FF60-$FFBF (reserved)
 												sel_cr = '1' or 
-												(a(15 downto 8) = "11111111" and (a(7) = '1' or a(6 downto 5) = "11"))
+												(addr(15 downto 8) = "11111111" and (addr(7) = '1' or addr(6 downto 5) = "11"))
 									else
 						"110" when	-- $FF40-$FF5F (IO2)
-												a(15 downto 5) = "11111111010"
+												addr(15 downto 5) = "11111111010"
 									else
 						"101" when	-- $FF20-$FF3F (IO1)
-												a(15 downto 5) = "11111111001"
+												addr(15 downto 5) = "11111111001"
 									else
 						"100" when	-- $FF00-$FF1F (IO0)
-												a(15 downto 5) = "11111111000"
+												addr(15 downto 5) = "11111111000"
 									else
 						"011" when	-- $C000-$FEFF (rom2)
-												a(15 downto 14) = "11"
+												addr(15 downto 14) = "11"
 									else
 						"010" when	-- $A000-$BFFF (rom1)
-												a(15 downto 13) = "101"
+												addr(15 downto 13) = "101"
 									else
 						"001" when	-- $8000-$9FFF (rom0)
-												a(15 downto 13) = "100"
+												addr(15 downto 13) = "100"
 									else
 						"000"	when	-- $0000-$7FFF (32K) RW_N=1   -> map to RAM select
-												a(15) = '0' and rw_n = '1'
+												addr(15) = '0' and rw_n = '1'
 									else
 						---"111" when	-- $0000-$7FFF (32K) RW_N=0
 						"000" when	-- $0000-$7FFF (32K) RW_N=0   -> map to RAM select
-												a(15) = '0' and rw_n = '0';
+												addr(15) = '0' and rw_n = '0';
 
 	--
 	-- alternate control logic,
 	-- when mapping in effect
 	--
 	s_ty1 <= 	s_ty0 when	-- $FF00-$FFFF
-												a(15 downto 8) = X"FF"
+												addr(15 downto 8) = X"FF"
 									else
 						"000"	when	-- $0000-$FEFF (32K) RW_N=1   -> map to RAM select
 												rw_n = '1'
@@ -322,20 +322,20 @@ begin
 						"000" when	-- $0000-$FEFF (32K) RW_N=0   -> map to RAM select
 												rw_n = '0';
 	
-	s <= 	s_ty0 when ty_memory_map_type = '0' else		-- if himem mapped to ROM, use s_ty0 multiplex output (normal)
+	s_device_select <= 	s_ty0 when ty_memory_map_type = '0' else		-- if himem mapped to ROM, use s_ty0 multiplex output (normal)
 				s_ty1;							-- else, also map &H8000 thru &HFEFF as RAM
 				
 	--
 	--	Handle update of the control register (CR)
 	--
-	WRITE_CR : process (clk, reset, a, rw_n)
+	WRITE_CR : process (clk, reset, addr, rw_n)
 	begin
 		if reset = '1' then
 			cr <= (others => '0');
 		elsif falling_edge (clk) then
       if clk_ena = '1' then
         if sel_cr = '1' and we_n_s = '0' then
-          case a(4 downto 1) is
+          case addr(4 downto 1) is
             when "0000" =>
               v_vdg_addr_modes(0) <= flag;
             when "0001" =>

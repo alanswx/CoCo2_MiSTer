@@ -21,7 +21,7 @@ entity mc6847pace  is
     da0     	      : out std_logic;
 
     -- data inputs
-		dd				      : in std_logic_vector(7 downto 0);
+    dd			      : in std_logic_vector(7 downto 0);
 
     -- synchronising outputs
     hs_n    	      : out std_logic;

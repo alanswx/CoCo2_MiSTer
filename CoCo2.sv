@@ -258,7 +258,6 @@ wire reset = RESET | status[0] | buttons[1] | (ioctl_download & ioctl_index == 1
 
 //////////////////////////////////////////////////////////////////
 
-wire [1:0] col = status[4:3];
 
 wire HBlank;
 wire HSync;
@@ -303,9 +302,7 @@ po8 po8(
   // input ps2_clk,
   // input ps2_dat,
   .uart_din(1'b0),
-  .debug_led(led),
-  .segments(),
-  .digits(),
+
   .ps2_key(ps2_key),
   .ioctl_addr(ioctl_addr),
   .ioctl_data(ioctl_data),
@@ -336,6 +333,8 @@ po8 po8(
   .clk_Q_out(clk_Q_out)
 
 );
+
+wire clk_Q_out;
 
 wire locked;
 wire [24:0] sdram_addr;
@@ -409,8 +408,8 @@ assign VGA_B=bb;
 
 reg  [26:0] act_cnt;
 always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1;
-	wire led;
-assign LED_USER    = led;
+	
+assign LED_USER    = 1'b0;
 
 reg [8:0] HCount,VCount;
 
@@ -419,12 +418,10 @@ reg [8:0] HCount,VCount;
 `ifdef USE_OVERLAY
 
 reg [3:0] C_R,C_G,C_B;
-reg [159:0] Line1,Line2;
 
 wire [159:0]DLine1;
 wire [159:0]DLine2;
 
-assign Line1= {145'b0,5'h12,5'h13,5'h1E};
 assign Line2= {5'h12,5'h12,5'h12,145'b0};
 ovo OVERLAY
 (
