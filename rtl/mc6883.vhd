@@ -302,24 +302,28 @@ begin
 						"001" when	-- $8000-$9FFF (rom0)
 												a(15 downto 13) = "100"
 									else
-						"000"	when	-- $0000-$7FFF (32K) RW_N=1
+						"000"	when	-- $0000-$7FFF (32K) RW_N=1   -> map to RAM select
 												a(15) = '0' and rw_n = '1'
 									else
 						---"111" when	-- $0000-$7FFF (32K) RW_N=0
-						"000" when	-- $0000-$7FFF (32K) RW_N=0
+						"000" when	-- $0000-$7FFF (32K) RW_N=0   -> map to RAM select
 												a(15) = '0' and rw_n = '0';
 
+	--
+	-- alternate control logic,
+	-- when mapping in effect
+	--
 	s_ty1 <= 	s_ty0 when	-- $FF00-$FFFF
 												a(15 downto 8) = X"FF"
 									else
-						"000"	when	-- $0000-$FEFF (32K) RW_N=1
+						"000"	when	-- $0000-$FEFF (32K) RW_N=1   -> map to RAM select
 												rw_n = '1'
 									else
-						"111" when	-- $0000-$FEFF (32K) RW_N=0
+						"000" when	-- $0000-$FEFF (32K) RW_N=0   -> map to RAM select
 												rw_n = '0';
 	
-	s <= 	s_ty0 when ty = '0' else
-				s_ty1;
+	s <= 	s_ty0 when ty = '0' else		-- if himem mapped to ROM, use s_ty0 multiplex output (normal)
+				s_ty1;							-- else, also map &H8000 thru &HFEFF as RAM
 				
 	--
 	--	Handle update of the control register (CR)
@@ -354,7 +358,7 @@ begin
               f(6) <= flag;
             when "1010" =>
               p <= flag;
-            when "1011" =>
+            when "1011" =>		-- &HFFD6/D7 - the "high speed poke"  (D7 enables "high speed", D6 disables)
               r(0) <= flag;
             when "1100" =>
               r(1) <= flag;
@@ -362,8 +366,8 @@ begin
               m(0) <= flag;
             when "1110" =>
               m(1) <= flag;
-            when others =>    -- "1111"
-              ty <= flag;
+            when others =>    -- "1111"   &HFFDE/DF
+              ty <= flag;		-- this flag maps ROM or RAM to the top half of memory.  FFDE = ROM, FFDF = RAM
           end case;
         end if;
 			end if; -- clk_ena
