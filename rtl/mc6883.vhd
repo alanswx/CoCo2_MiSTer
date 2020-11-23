@@ -7,17 +7,17 @@ entity mc6883 is
 	port
 	(
 		clk			: in std_logic;
-		clk_ena : in std_logic;
-		reset		: in std_logic;
+		clk_ena 		: in std_logic;
+		reset			: in std_logic;
 		
 		-- input
 		a				: in std_logic_vector(15 downto 0);
-		rw_n		: in std_logic;
+		rw_n			: in std_logic;
 
 		-- vdg signals
-		da0			: in std_logic;
-		hs_n		: in std_logic;
-		vclk		: out std_logic;
+		da0			: in std_logic;  -- display address 0 - 
+		hs_n			: in std_logic;
+		vclk			: out std_logic;
 		
 		-- peripheral address selects		
 		s				: out std_logic_vector(2 downto 0);
@@ -27,15 +27,15 @@ entity mc6883 is
 		q				: out std_logic;
 
 		-- dynamic addresses
-		z			  : out std_logic_vector(7 downto 0);
+		z				: out std_logic_vector(7 downto 0);
 
 		-- ram
-		ras0_n 	: out std_logic;
-		cas_n		: out std_logic;
-		we_n		: out std_logic;
+		ras0_n 		: out std_logic;
+		cas_n			: out std_logic;
+		we_n			: out std_logic;
 		
 		-- debug
-		dbg     : out std_logic_vector(15 downto 0)
+		dbg     		: out std_logic_vector(15 downto 0)
 	);
 end mc6883;
 
@@ -70,12 +70,12 @@ architecture SYN of mc6883 is
 	signal cr				: std_logic_vector(15 downto 0);
 	signal sel_cr		: std_logic;
 	
-	alias ty				: std_logic 										is cr(15);
-	alias m 				: std_logic_vector(1 downto 0) 	is cr(14 downto 13);
-	alias r					: std_logic_vector(1 downto 0) 	is cr(12 downto 11);
-	alias p 				: std_logic 										is cr(10);
-	alias f 				: std_logic_vector(6 downto 0) 	is cr(9 downto 3);
-	alias v 				: std_logic_vector(2 downto 0) 	is cr(2 downto 0);
+	alias ty_memory_map_type: std_logic 							is cr(15);
+	alias m_memory_size		: std_logic_vector(1 downto 0) 	is cr(14 downto 13);
+	alias r_mpu_rate			: std_logic_vector(1 downto 0) 	is cr(12 downto 11);
+	alias p_32k_page_switch : std_logic 							is cr(10);
+	alias f_vdg_addr_offset : std_logic_vector(6 downto 0) 	is cr(9 downto 3);
+	alias v_vdg_addr_modes 	: std_logic_vector(2 downto 0) 	is cr(2 downto 0);
 	
 	alias flag			: std_logic 										is a(0);
 
@@ -160,7 +160,7 @@ begin
                 -- z(7) is P or don't care
             --    z <= p & a(13 downto 7);
             --  when others =>
-            --    if ty = '0' then
+            --    if ty_memory_map_type = '0' then
             --      z <= p & a(14 downto 8);
             --    else
                   z <= a(15 downto 8);
@@ -236,20 +236,20 @@ begin
         -- vertical blanking - HS rises when DA0 is high
         -- resets bits B9-15, clear B1-B8
         if rising_edge_hs = '1' and da0 = '1' then
-          b_int(15 downto 9) <= f(6 downto 0);
+          b_int(15 downto 9) <= f_vdg_addr_offset(6 downto 0);
           b_int(8 downto 0) <= (others => '0');
-          yscale := mode_rows(conv_integer(v(2 downto 0)));
-          saved_b := f(6 downto 0) & "000000000";
+          yscale := mode_rows(conv_integer(v_vdg_addr_modes(2 downto 0)));
+          saved_b := f_vdg_addr_offset(6 downto 0) & "000000000";
         -- horizontal blanking - HS low
         -- resets bits B1-B3/4
         elsif hs_n = '0' then
-          if v(0) = '0' then
+          if v_vdg_addr_modes(0) = '0' then
             b_int(4) <= '0';
           end if;
           b_int(3 downto 1) <= (others => '0');
           -- coming out of HS?
           if old_hs = '1' then
-            if yscale = mode_rows(conv_integer(v(2 downto 0))) then
+            if yscale = mode_rows(conv_integer(v_vdg_addr_modes(2 downto 0))) then
               yscale := 0;
               saved_b := b_int;
             else
@@ -322,7 +322,7 @@ begin
 						"000" when	-- $0000-$FEFF (32K) RW_N=0   -> map to RAM select
 												rw_n = '0';
 	
-	s <= 	s_ty0 when ty = '0' else		-- if himem mapped to ROM, use s_ty0 multiplex output (normal)
+	s <= 	s_ty0 when ty_memory_map_type = '0' else		-- if himem mapped to ROM, use s_ty0 multiplex output (normal)
 				s_ty1;							-- else, also map &H8000 thru &HFEFF as RAM
 				
 	--
@@ -337,37 +337,37 @@ begin
         if sel_cr = '1' and we_n_s = '0' then
           case a(4 downto 1) is
             when "0000" =>
-              v(0) <= flag;
+              v_vdg_addr_modes(0) <= flag;
             when "0001" =>
-              v(1) <= flag;
+              v_vdg_addr_modes(1) <= flag;
             when "0010" =>
-              v(2) <= flag;
+              v_vdg_addr_modes(2) <= flag;
             when "0011" =>
-              f(0) <= flag;
+              f_vdg_addr_offset(0) <= flag;
             when "0100" =>
-              f(1) <= flag;
+              f_vdg_addr_offset(1) <= flag;
             when "0101" =>
-              f(2) <= flag;
+              f_vdg_addr_offset(2) <= flag;
             when "0110" =>
-              f(3) <= flag;
+              f_vdg_addr_offset(3) <= flag;
             when "0111" =>
-              f(4) <= flag;
+              f_vdg_addr_offset(4) <= flag;
             when "1000" =>
-              f(5) <= flag;
+              f_vdg_addr_offset(5) <= flag;
             when "1001" =>
-              f(6) <= flag;
+              f_vdg_addr_offset(6) <= flag;
             when "1010" =>
-              p <= flag;
+              p_32k_page_switch <= flag;
             when "1011" =>		-- &HFFD6/D7 - the "high speed poke"  (D7 enables "high speed", D6 disables)
-              r(0) <= flag;
+              r_mpu_rate(0) <= flag;
             when "1100" =>
-              r(1) <= flag;
+              r_mpu_rate(1) <= flag;
             when "1101" =>
-              m(0) <= flag;
+              m_memory_size(0) <= flag;
             when "1110" =>
-              m(1) <= flag;
+              m_memory_size(1) <= flag;
             when others =>    -- "1111"   &HFFDE/DF
-              ty <= flag;		-- this flag maps ROM or RAM to the top half of memory.  FFDE = ROM, FFDF = RAM
+              ty_memory_map_type <= flag;		-- this flag maps ROM or RAM to the top half of memory.  FFDE = ROM, FFDF = RAM
           end case;
         end if;
 			end if; -- clk_ena
