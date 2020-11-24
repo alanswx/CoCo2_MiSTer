@@ -3,7 +3,9 @@
 // todo: find a better name
 module po8(
   input clk, // 57.272 mhz
+  input turbo,
   input reset, // todo: reset doesn't work!
+  input dragon,
 
   // video signals
   output [7:0] red,
@@ -93,6 +95,9 @@ begin
 end
 
 
+wire clk_enable = turbo ? 1 : clk_14M318_ena;
+
+
 wire [7:0] cpu_dout;
 wire [15:0] cpu_addr;
 wire cpu_rw;
@@ -180,20 +185,42 @@ dpram #(.addr_width_g(16), .data_width_g(8)) ram1(
 
 // 8k extended basic rom
 // Do we need an option to enable/disable extended basic rom?
+assign rom8_dout = dragon ? rom8_dout_dragon : rom8_dout_tandy;
+wire [7:0] rom8_dout_dragon;
+wire [7:0] rom8_dout_tandy;
+
 rom_ext rom8(
   .clk(clk),
   .addr(cpu_addr[12:0]),
-  .dout(rom8_dout),
+  .dout(rom8_dout_tandy),
   .cs(~rom8_cs)
 );
+dragon_ext rom8_D(
+  .clk(clk),
+  .addr(cpu_addr[12:0]),
+  .dout(rom8_dout_dragon),
+  .cs(~rom8_cs)
+);
+
+assign romA_dout = dragon ? romA_dout_dragon : romA_dout_tandy;
+wire [7:0] romA_dout_dragon;
+wire [7:0] romA_dout_tandy;
 
 // 8k color basic rom
 rom_bas romA(
   .clk(clk),
   .addr(cpu_addr[12:0]),
-  .dout(romA_dout),
+  .dout(romA_dout_tandy),
   .cs(~romA_cs)
 );
+
+dragon_bas romA_D(
+  .clk(clk),
+  .addr(cpu_addr[12:0]),
+  .dout(romA_dout_dragon),
+  .cs(~romA_cs )
+ );
+
 
 // there must be another solution
 reg cart_loaded;
@@ -243,7 +270,7 @@ begin
 		cas_n_r<=0;
 		q_r<=0;
 	end
-	else if  (clk_14M318_ena == 1)
+	else if  (clk_enable == 1)
 	begin
 	     if (ras_n == 1 && ras_n_r == 0 &&  clk_E ==1)
 		  begin
@@ -271,7 +298,7 @@ end
 
 mc6883 sam(
 			.clk(clk),
-			.clk_ena(clk_14M318_ena),
+			.clk_ena(clk_enable),
 			.reset(~reset),
 
 			//-- input
@@ -281,7 +308,7 @@ mc6883 sam(
 			//-- vdg signals
 			.da0(da0),
 			.hs_n(hs_n),
-			.vclk(),
+			.vclk(sam_vclk),
 
 			//-- peripheral address selects
 			.s_device_select(s_device_select),
@@ -345,7 +372,7 @@ pia6520 pia(
   .ca2_out(sela), // used for joy & snd
   .cb2_out(selb), // used for joy & snd
   .clk(clk),
-  .clk_ena(clk_14M318_ena),
+  .clk_ena(clk_enable),
   .reset(~reset)
 );
 
@@ -376,7 +403,7 @@ pia6520 pia1(
   .ca2_out(cas_relay),
   .cb2_out(snden),
   .clk(clk),
-  .clk_ena(clk_14M318_ena),
+  .clk_ena(clk_enable),
   .reset(~reset)
 );
 
@@ -404,7 +431,7 @@ assign DLine1 = {
 
 mc6847pace vdg(
   .clk(clk),
-  .clk_ena(clk_14M318_ena),//VClk
+  .clk_ena(clk_enable),//VClk
   .reset(~reset),
   .da0(da0),
   .dd(ram_dout_b),
@@ -445,6 +472,7 @@ wire hilo;
 keyboard kb(
 .clk_sys(clk),
 .reset(~reset),
+.dragon(dragon),
 .ps2_key(ps2_key),
 .addr(kb_cols),
 .kb_rows(kb_rows),

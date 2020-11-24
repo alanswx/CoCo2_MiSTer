@@ -47,7 +47,7 @@ module keyboard
 (
 	input             reset,		// reset when driven high
 	input             clk_sys,		// should be same clock as clk_sys from HPS_IO
-
+   input             dragon,
 	input      [10:0] ps2_key,		// [7:0] - scancode,
 											// [8] - extended (i.e. preceded by scan 0xE0),
 											// [9] - pressed
@@ -81,6 +81,72 @@ always @(addr, joystick_1_button,joystick_2_button,joystick_hilo) begin
 	if (joystick_1_button) kb_rows[1]<=0;
 	if (joystick_2_button) kb_rows[0]<=0;
 	kb_rows[7]<=joystick_hilo;
+	
+	if (dragon) begin
+		if (keys[4][0]==1'b0) if (addr[0] == 1'b0) kb_rows[0] <= 1'b0;
+	if (keys[4][1]==1'b0) if (addr[1] == 1'b0) kb_rows[0] <= 1'b0;
+	if (keys[4][2]==1'b0) if (addr[2] == 1'b0) kb_rows[0] <= 1'b0;
+	if (keys[4][3]==1'b0) if (addr[3] == 1'b0) kb_rows[0] <= 1'b0;
+	if (keys[4][4]==1'b0) if (addr[4] == 1'b0) kb_rows[0] <= 1'b0;
+	if (keys[4][5]==1'b0) if (addr[5] == 1'b0) kb_rows[0] <= 1'b0;
+	if (keys[4][6]==1'b0) if (addr[6] == 1'b0) kb_rows[0] <= 1'b0;
+	if (keys[4][7]==1'b0) if (addr[7] == 1'b0) kb_rows[0] <= 1'b0;
+
+	if (keys[5][0]==1'b0) if (addr[0] == 1'b0) kb_rows[1] <= 1'b0;
+	if (keys[5][1]==1'b0) if (addr[1] == 1'b0) kb_rows[1] <= 1'b0;
+	if (keys[5][2]==1'b0) if (addr[2] == 1'b0) kb_rows[1] <= 1'b0;
+	if (keys[5][3]==1'b0) if (addr[3] == 1'b0) kb_rows[1] <= 1'b0;
+	if (keys[5][4]==1'b0) if (addr[4] == 1'b0) kb_rows[1] <= 1'b0;
+	if (keys[5][5]==1'b0) if (addr[5] == 1'b0) kb_rows[1] <= 1'b0;
+	if (keys[5][6]==1'b0) if (addr[6] == 1'b0) kb_rows[1] <= 1'b0;
+	if (keys[5][7]==1'b0) if (addr[7] == 1'b0) kb_rows[1] <= 1'b0;
+
+	if (keys[0][0]==1'b0) if (addr[0] == 1'b0) kb_rows[2] <= 1'b0;
+	if (keys[0][1]==1'b0) if (addr[1] == 1'b0) kb_rows[2] <= 1'b0;
+	if (keys[0][2]==1'b0) if (addr[2] == 1'b0) kb_rows[2] <= 1'b0;
+	if (keys[0][3]==1'b0) if (addr[3] == 1'b0) kb_rows[2] <= 1'b0;
+	if (keys[0][4]==1'b0) if (addr[4] == 1'b0) kb_rows[2] <= 1'b0;
+	if (keys[0][5]==1'b0) if (addr[5] == 1'b0) kb_rows[2] <= 1'b0;
+	if (keys[0][6]==1'b0) if (addr[6] == 1'b0) kb_rows[2] <= 1'b0;
+	if (keys[0][7]==1'b0) if (addr[7] == 1'b0) kb_rows[2] <= 1'b0;
+
+	if (keys[1][0]==1'b0) if (addr[0] == 1'b0) kb_rows[3] <= 1'b0;
+	if (keys[1][1]==1'b0) if (addr[1] == 1'b0) kb_rows[3] <= 1'b0;
+	if (keys[1][2]==1'b0) if (addr[2] == 1'b0) kb_rows[3] <= 1'b0;
+	if (keys[1][3]==1'b0) if (addr[3] == 1'b0) kb_rows[3] <= 1'b0;
+	if (keys[1][4]==1'b0) if (addr[4] == 1'b0) kb_rows[3] <= 1'b0;
+	if (keys[1][5]==1'b0) if (addr[5] == 1'b0) kb_rows[3] <= 1'b0;
+	if (keys[1][6]==1'b0) if (addr[6] == 1'b0) kb_rows[3] <= 1'b0;
+	if (keys[1][7]==1'b0) if (addr[7] == 1'b0) kb_rows[3] <= 1'b0;
+
+	if (keys[2][0]==1'b0) if (addr[0] == 1'b0) kb_rows[4] <= 1'b0;
+	if (keys[2][1]==1'b0) if (addr[1] == 1'b0) kb_rows[4] <= 1'b0;
+	if (keys[2][2]==1'b0) if (addr[2] == 1'b0) kb_rows[4] <= 1'b0;
+	if (keys[2][3]==1'b0) if (addr[3] == 1'b0) kb_rows[4] <= 1'b0;
+	if (keys[2][4]==1'b0) if (addr[4] == 1'b0) kb_rows[4] <= 1'b0;
+	if (keys[2][5]==1'b0) if (addr[5] == 1'b0) kb_rows[4] <= 1'b0;
+	if (keys[2][6]==1'b0) if (addr[6] == 1'b0) kb_rows[4] <= 1'b0;
+	if (keys[2][7]==1'b0) if (addr[7] == 1'b0) kb_rows[4] <= 1'b0;
+
+	if (keys[3][0]==1'b0) if (addr[0] == 1'b0) kb_rows[5] <= 1'b0;
+	if (keys[3][1]==1'b0) if (addr[1] == 1'b0) kb_rows[5] <= 1'b0;
+	if (keys[3][2]==1'b0) if (addr[2] == 1'b0) kb_rows[5] <= 1'b0;
+	if (keys[3][3]==1'b0) if (addr[3] == 1'b0) kb_rows[5] <= 1'b0;
+	if (keys[3][4]==1'b0) if (addr[4] == 1'b0) kb_rows[5] <= 1'b0;
+	if (keys[3][5]==1'b0) if (addr[5] == 1'b0) kb_rows[5] <= 1'b0;
+	if (keys[3][6]==1'b0) if (addr[6] == 1'b0) kb_rows[5] <= 1'b0;
+	if (keys[3][7]==1'b0) if (addr[7] == 1'b0) kb_rows[5] <= 1'b0;
+
+	if (keys[6][0]==1'b0) if (addr[0] == 1'b0) kb_rows[6] <= 1'b0;
+	if (keys[6][1]==1'b0) if (addr[1] == 1'b0) kb_rows[6] <= 1'b0;
+	if (keys[6][2]==1'b0) if (addr[2] == 1'b0) kb_rows[6] <= 1'b0;
+	if (keys[6][3]==1'b0) if (addr[3] == 1'b0) kb_rows[6] <= 1'b0;
+	if (keys[6][4]==1'b0) if (addr[4] == 1'b0) kb_rows[6] <= 1'b0;
+	if (keys[6][5]==1'b0) if (addr[5] == 1'b0) kb_rows[6] <= 1'b0;
+	if (keys[6][6]==1'b0) if (addr[6] == 1'b0) kb_rows[6] <= 1'b0;
+	if (keys[6][7]==1'b0) if (addr[7] == 1'b0) kb_rows[6] <= 1'b0;
+	end
+	else begin
 	
 	if (keys[0][0]==1'b0) if (addr[0] == 1'b0) kb_rows[0] <= 1'b0;
 	if (keys[0][1]==1'b0) if (addr[1] == 1'b0) kb_rows[0] <= 1'b0;
@@ -144,6 +210,8 @@ always @(addr, joystick_1_button,joystick_2_button,joystick_hilo) begin
 	if (keys[6][5]==1'b0) if (addr[5] == 1'b0) kb_rows[6] <= 1'b0;
 	if (keys[6][6]==1'b0) if (addr[6] == 1'b0) kb_rows[6] <= 1'b0;
 	if (keys[6][7]==1'b0) if (addr[7] == 1'b0) kb_rows[6] <= 1'b0;
+	
+	end
 /*
 	if (keys[7][0]==1'b0) if (addr[0] == 1'b0) kb_rows[7] <= 1'b0;
 	if (keys[7][1]==1'b0) if (addr[1] == 1'b0) kb_rows[7] <= 1'b0;

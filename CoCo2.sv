@@ -191,6 +191,10 @@ localparam CONF_STR = {
 	"TE,Tape Play/Pause;",
 	"TF,Tape Rewind;",
 	"-;",
+	"O7,Turbo,Off,On",
+	"-;",
+	"O8,Dragon,Off,On",
+	"-;",
 	"R0,Reset;",
 	"J1,Button;",
 	"jn,A;",
@@ -288,8 +292,9 @@ wire cas_relay;
 
 po8 po8(
   .clk(clk_sys), // 50 mhz
+  .turbo(status[7]),
   .reset(~reset),
-
+  .dragon(status[8]),
   .red(red),
   .green(green),
   .blue(blue),
@@ -359,7 +364,7 @@ sdram sdram
 cassette cassette(
   .clk(clk_sys),
   .Q(clk_Q_out),
-  .play(status[14]),
+  .play(1'b1),
   .rewind(status[15]),
   .en(cas_relay),
 

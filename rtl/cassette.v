@@ -50,6 +50,9 @@ always @(posedge clk) begin
 		 ffrewind <= rewind;
 
 		 case (state)
+		   IDLE: begin
+			  state<=START;
+			end
 			START: begin
 			  seq <= 24'd0;
 			  state <= NEXT;
@@ -93,7 +96,6 @@ always @(posedge clk) begin
 			end
 		 endcase
 
-		 if (play && ffplay ^ play) state <= state == IDLE ? START : IDLE;
 		 if (ffrewind ^ rewind) begin
 			seq <= 24'd0;
 			sdram_addr <= 25'd0;
