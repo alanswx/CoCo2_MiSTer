@@ -70,6 +70,7 @@ always @(posedge clk) begin
       end
       if (seq == 24'h553cff) eof <= 2'd1;
       if (seq == 24'h00ff55 && eof == 2'd1) eof <= 2'd2;
+      if (~en) state <= IDLE;
     end
     READ1: begin
       sdram_rd <= 1'b1;
