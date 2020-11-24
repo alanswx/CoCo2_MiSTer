@@ -192,7 +192,7 @@ localparam CONF_STR = {
 	"-;",
 	"O7,Turbo,Off,On",
 	"-;",
-	"O8,Dragon,Off,On",
+	"O89,Machine,CoCo2,Dragon32,Dragon64",
 	"-;",
 	"R0,Reset;",
 	"J1,Button;",
@@ -291,9 +291,10 @@ wire cas_relay;
 
 po8 po8(
   .clk(clk_sys), // 50 mhz
-  .turbo(status[7]),
+  .turbo(status[7]&cas_relay),
   .reset(~reset),
-  .dragon(status[8]),
+  .dragon(status[9:8]!=2'b00),
+  .dragon64(status[9:8]==2'b10),
   .red(red),
   .green(green),
   .blue(blue),

@@ -6,6 +6,7 @@ module po8(
   input turbo,
   input reset, // todo: reset doesn't work!
   input dragon,
+  input dragon64,
 
   // video signals
   output [7:0] red,
@@ -185,8 +186,9 @@ dpram #(.addr_width_g(16), .data_width_g(8)) ram1(
 
 // 8k extended basic rom
 // Do we need an option to enable/disable extended basic rom?
-assign rom8_dout = dragon ? rom8_dout_dragon : rom8_dout_tandy;
+assign rom8_dout = dragon ? dragon64 ? rom8_dout_dragon64 : rom8_dout_dragon : rom8_dout_tandy;
 wire [7:0] rom8_dout_dragon;
+wire [7:0] rom8_dout_dragon64;
 wire [7:0] rom8_dout_tandy;
 
 rom_ext rom8(
@@ -201,9 +203,15 @@ dragon_ext rom8_D(
   .dout(rom8_dout_dragon),
   .cs(~rom8_cs)
 );
-
-assign romA_dout = dragon ? romA_dout_dragon : romA_dout_tandy;
+dragon_ext64 rom8_D64(
+  .clk(clk),
+  .addr(cpu_addr[12:0]),
+  .dout(rom8_dout_dragon64),
+  .cs(~rom8_cs)
+);
+assign romA_dout = dragon ? dragon64 ? romA_dout_dragon64 : romA_dout_dragon : romA_dout_tandy;
 wire [7:0] romA_dout_dragon;
+wire [7:0] romA_dout_dragon64;
 wire [7:0] romA_dout_tandy;
 
 // 8k color basic rom
@@ -218,6 +226,13 @@ dragon_bas romA_D(
   .clk(clk),
   .addr(cpu_addr[12:0]),
   .dout(romA_dout_dragon),
+  .cs(~romA_cs )
+ );
+ 
+dragon_bas64 romA_D64(
+  .clk(clk),
+  .addr(cpu_addr[12:0]),
+  .dout(romA_dout_dragon64),
   .cs(~romA_cs )
  );
 
