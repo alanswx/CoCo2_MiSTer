@@ -188,8 +188,7 @@ localparam CONF_STR = {
 	"-;",
 	"F1,CCC,Load Cartridge;",
 	"F2,CAS,Load Cassette;",
-	"TE,Tape Play/Pause;",
-	"TF,Tape Rewind;",
+	"TF,Stop & Rewind;",
 	"-;",
 	"O7,Turbo,Off,On",
 	"-;",
@@ -364,7 +363,7 @@ sdram sdram
 cassette cassette(
   .clk(clk_sys),
   .Q(clk_Q_out),
-  .play(1'b1),
+
   .rewind(status[15]),
   .en(cas_relay),
 
@@ -413,7 +412,7 @@ assign VGA_B=bb;
 
 reg  [26:0] act_cnt;
 always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1;
-	
+
 assign LED_USER    = 1'b0;
 
 reg [8:0] HCount,VCount;
