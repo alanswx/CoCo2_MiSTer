@@ -186,7 +186,7 @@ localparam CONF_STR = {
 	"-;",
 	"OB,Debug display,Off,On;",
 	"-;",
-	"F1,CCC,Load Cartridge;",
+	"F1,CCCROM,Load Cartridge;",
 	"F2,CAS,Load Cassette;",
 	"TF,Stop & Rewind;",
 	"-;",
