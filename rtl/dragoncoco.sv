@@ -298,6 +298,7 @@ reg [15:0] sam_a;
 reg ras_n_r;
 reg cas_n_r;
 reg q_r;
+
 always @(posedge clk)
 begin
 	if (~reset)
@@ -308,7 +309,7 @@ begin
 	end
 	else if  (clk_enable == 1)
 	begin
-	     if (ras_n == 1 && ras_n_r == 0 &&  clk_E ==1)
+	     if (ras_n == 1 && ras_n_r == 0  && clk_E ==1)
 		  begin
 		    //  ram_datao <= sram_i.d(ram_datao'range);
 			ram_dout<=vdg_data;

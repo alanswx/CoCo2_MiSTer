@@ -1,15 +1,28 @@
 
-# MiSTer Port of Tandy Color Computer 2 (CoCo2)
+# MiSTer Tandy Color Computer 2 (CoCo2)  and Dragon 32
 
+Originally started by:
 
 https://github.com/pcornier/coco2
 
+Finished by dshadoff and alanswx and pcornier.
 
 ### Tandy Color 2
 
-I tried to recreate the Tandy Color 2 on a Spartan-6 dev board (AX309). There's still a lot to be done (sound, joystick, cassette...) but I don't want to put more efforts into it as it was just a learning project.
+This core implements a Tandy Color Computer 2 (CoCo2) including:
+ * 64k Memory
+ * 2 Analog Joysticks (with a swap feature)
+ * Cassette Loading
+ * Sound
+ * Cartridge Support
 
-po8.v is the top file. Yes I know :grin:, what a strange name...
+### Dragon 32 / 64
+
+ * only the dragon 32 seems to work 
+ * 2 Analog Joysticks (with a swap feature)
+ * Cassette Loading
+ * Sound
+ * Cartridge Support
 
 
 ![Coco2 running on the AX309](photo.jpg)
