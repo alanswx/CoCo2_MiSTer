@@ -289,7 +289,7 @@ wire [15:0] coco_ajoy2 = status[10] ? {center_joystick_x1[7:0],center_joystick_y
 wire casdout;
 wire cas_relay;
 
-po8 po8(
+dragoncoco dragoncoco(
   .clk(clk_sys), // 50 mhz
   .turbo(status[7]&cas_relay),
   .reset(~reset),

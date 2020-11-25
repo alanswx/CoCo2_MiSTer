@@ -1,7 +1,7 @@
 
 
 // todo: find a better name
-module po8(
+module dragoncoco(
   input clk, // 57.272 mhz
   input turbo,
   input reset, // todo: reset doesn't work!
@@ -116,13 +116,18 @@ wire ram_cs,rom8_cs,romA_cs,romC_cs,io_cs,pia1_cs,pia_cs;
 
 
 wire [7:0]vdg_data;
-wire [7:0] ram_dout;
+reg [7:0] ram_dout;
 reg [7:0] ram_dout_b;
 wire [7:0] rom8_dout;
+reg [7:0] rom8_dout2;
 wire [7:0] romA_dout;
+reg [7:0] romA_dout2;
 wire [7:0] romC_dout;
+reg [7:0] romC_dout2;
 wire [7:0] pia_dout;
+reg [7:0] pia_dout2;
 wire [7:0] pia1_dout;
+reg [7:0] pia1_dout2;
 wire [7:0] io_out;
 
 wire we = ~cpu_rw & clk_E;
@@ -134,6 +139,7 @@ wire [7:0] kb_cols, kb_rows;
 wire [7:0] pia1_portb_out;
 
 // data mux
+/*
 wire [7:0] cpu_din =
   ram_cs  ? ram_dout  :
   rom8_cs ? rom8_dout :
@@ -142,7 +148,22 @@ wire [7:0] cpu_din =
   pia_cs  ? pia_dout  :
   pia1_cs ? pia1_dout :
   io_cs   ? io_out : 8'hff;
-
+*/
+wire [7:0] cpu_din;
+reg [7:0] data_hold;
+always_comb begin
+   unique case (1'b1)
+     ram_cs:  cpu_din =  ram_dout;
+     rom8_cs: cpu_din =  rom8_dout2;
+     romA_cs: cpu_din =  romA_dout2;
+     romC_cs: cpu_din =  romC_dout2;
+     pia_cs:  cpu_din =  pia_dout2;
+     pia1_cs: cpu_din =  pia1_dout2;
+     io_cs:   cpu_din =  io_out;
+     default: cpu_din =  8'hff;
+   endcase
+	
+end
 mc6809i cpu(
   .clk(clk),
   .D(cpu_din),
@@ -290,7 +311,12 @@ begin
 	     if (ras_n == 1 && ras_n_r == 0 &&  clk_E ==1)
 		  begin
 		    //  ram_datao <= sram_i.d(ram_datao'range);
-			// ram_dout<=vdg_data;
+			ram_dout<=vdg_data;
+			romC_dout2<=romC_dout;
+			romA_dout2<=romA_dout;
+			rom8_dout2<=rom8_dout;
+			pia_dout2<=pia_dout;
+			pia1_dout2<=pia1_dout;
         end
         if (ras_n == 0 && ras_n_r == 1)
           sam_a[7:0]<= ma_ram_addr;
@@ -308,7 +334,7 @@ begin
         cas_n_r <= cas_n;
 	end
 end
-			assign ram_dout=vdg_data;
+			//assign ram_dout=vdg_data;
 
 
 mc6883 sam(
